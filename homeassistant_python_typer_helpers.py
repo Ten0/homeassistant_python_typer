@@ -142,6 +142,10 @@ def rgb_color(
 ) -> tuple[int, int, int]:
     if isinstance(rgb_array_or_str, str):
         # Convert from hashtag hex representation to the RGB tuple
+        if rgb_array_or_str.startswith("#"):
+            rgb_array_or_str = rgb_array_or_str[1:]
+        if len(rgb_array_or_str) != 6:
+            raise ValueError("RGB color string must have 6 characters (or 7 with #)")
         rgb_array_or_str = [int(rgb_array_or_str[i : i + 2], 16) for i in (0, 2, 4)]
     if isinstance(rgb_array_or_str, list):
         if len(rgb_array_or_str) != 3:

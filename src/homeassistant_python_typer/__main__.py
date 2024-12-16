@@ -44,7 +44,8 @@ def main():
         domain, entity_name = entity_id.split(".", 1)
 
         class_name = f"entity__{domain}__{entity_name}"
-        entity_body = f"    class {class_name}(hapth.Entity):\n        pass"
+        superclass = "Light" if domain == "light" else "Entity"
+        entity_body = f"    class {class_name}(hapth.{superclass}):\n        pass"
         entities.append((entity_name, entity_body))
 
         entity_type_in_domain = class_name

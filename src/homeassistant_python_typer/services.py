@@ -116,8 +116,9 @@ def choose_field_type(
     elif "entity" in selector:
         # TODO probably replace with a {Domain}Entity type (that is added to the available supertypes
         # if anything references it here or among existing entities)
-        # LightEntity would be special-cased to inherit LightEntityExt
-        # transformator would not be None, but instead be `(lambda x: x.entity_id)`
+        # Or create a superclass for the field that should be given to each entity that can be used for this field
+        # (Advantage of this second solution is this can take into account `supported_features` as well for e.g.
+        # `weather.get_forecasts`)
         return "hapth.Entity", f"{field_name}.entity_id"
     elif "color_rgb" in selector or (
         field_name == "rgb_color" and selector_is_object()

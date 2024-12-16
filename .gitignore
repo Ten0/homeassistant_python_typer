@@ -1,0 +1,6 @@
+__pycache__
+.direnv
+!/.vscode
+.secrets
+entities.json
+services.json

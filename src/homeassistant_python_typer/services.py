@@ -26,6 +26,12 @@ def infer_services_superclasses(
                     self,"""
         service_data_dict = ""
         for field_name, field_data in fields.items():
+            # Make sure the field should actually be active for this particular instance,
+            # based on filter
+            if not field_is_available_for_entity(field_data, entity_attributes):
+                continue
+
+            # It should indeed be active
             field_type_and_default, field_value_construction = choose_field_type(
                 field_name, field_data["selector"], enum_types=enum_types
             )
@@ -129,6 +135,51 @@ def choose_field_type(
     else:
         print(f"Warning: Unknown field type for {field_name}: {selector}")
         return "Any", None
+
+
+def field_is_available_for_entity(
+    field_data: dict[str, Any], entity_attributes: dict[str, Any]
+) -> bool:
+    if "filter" in field_data:
+        filter = field_data["filter"]
+        if "supported_features" in filter:
+            supported_features = filter["supported_features"]
+            if not any(
+                (
+                    entity_attributes.get("supported_features", 0)
+                    & supported_feature_filter
+                    == supported_feature_filter
+                )
+                for supported_feature_filter in supported_features
+            ):
+                return False
+        if "attribute" in filter:
+            for attribute_name, attribute_value in filter["attribute"].items():
+                if attribute_name not in entity_attributes:
+                    return False
+                if not entity_has_attribute(
+                    entity_attributes[attribute_name], attribute_value
+                ):
+                    return False
+    return True
+
+
+def entity_has_attribute(entity_attribute: Any, attribute_filter: Any) -> bool:
+    if isinstance(attribute_filter, list):
+        return any(
+            (
+                entity_has_attribute(entity_attribute, value)
+                for value in attribute_filter
+            )
+        )
+    if isinstance(entity_attribute, list):
+        return any(
+            (
+                entity_has_attribute(value, attribute_filter)
+                for value in entity_attribute
+            )
+        )
+    return entity_attribute == attribute_filter
 
 
 def per_entity_domain_services(

@@ -120,3 +120,18 @@ class Light(Entity):
                 return True
             case _:  # type: ignore[reportUnnecessaryComparison]
                 raise ValueError(f"Unexpected light state: {light_state}")
+
+
+class Domain:
+    def __init__(self, hapt: HaptSharedState, domain_name: str):
+        self._hapt = hapt
+        self._domain_name = domain_name
+
+    def __getattr__(self, entity_name: str) -> Entity:
+        if entity_class := self.__class__.__annotations__.get(entity_name):
+            return entity_class(
+                hapt=self._hapt, entity_id=f"{self._domain_name}.{entity_name}"
+            )
+        raise AttributeError(
+            f"Entity {entity_name} not found in domain {self._domain_name}"
+        )

@@ -47,10 +47,10 @@ def main():
         entity_body = f"    class {class_name}(hapth.Entity):\n        pass"
         entities.append((entity_name, entity_body))
 
-        entity_init = f'{class_name}(hapt, "{entity_id}")'
+        entity_type_in_domain = class_name
         if domain not in domains:
             domains[domain] = []
-        domains[domain].append((entity_name, entity_init))
+        domains[domain].append((entity_name, entity_type_in_domain))
 
     services_classes = [
         (class_name, body) for body, class_name in classes_per_body.items()
@@ -74,13 +74,15 @@ def main():
         if domains_classes_body != "":
             domains_classes_body += "\n\n"
         domains_classes_body += f"""
-        class {domain_name_in_title_case}Domain:
-            def __init__(self, hapt: hapth.HaptSharedState):""".strip(
+        class {domain_name_in_title_case}Domain(hapth.Domain):
+            def __init__(self, hapt: hapth.HaptSharedState):
+                super().__init__(hapt, "{domain_name}")\n\n""".lstrip(
             "\n"
         )
-        for entity_name, init_body in domain_entities:
-            domains_classes_body += f"""
-                self.{entity_name} = {init_body}"""
+        for entity_name, entity_type_in_domain in domain_entities:
+            domains_classes_body += (
+                tab(f"{entity_name}: {entity_type_in_domain}", 3) + "\n"
+            )
         domains_init_body += f"""
             self.{domain_name} = {domain_name_in_title_case}Domain(hapt)"""
 
@@ -89,25 +91,23 @@ def main():
     from appdaemon.adbase import ADBase
     import homeassistant_python_typer_helpers as hapth
 
+    # Declare all services classes
+{retab(services_classes_body)}
 
-    # All entities, organized by domain
-    class Entities:
-        def __init__(self, ad: ADBase):
-            hapt = hapth.HaptSharedState(ad)
-{domains_init_body}
+
+    # Declare entities
+{retab(entities_classes_body)}
 
 
     # Declare domains
 {retab(domains_classes_body)}
 
 
-    # All entities classes
-{retab(entities_classes_body)}
-
-
-    # All services classes
-{retab(services_classes_body)}
-
+    # Finally register all domains in a final Entities object
+    class Entities:
+        def __init__(self, ad: ADBase):
+            hapt = hapth.HaptSharedState(ad)
+{domains_init_body}
     """
 
     out = remove_common_indent_levels(out).strip("\n")

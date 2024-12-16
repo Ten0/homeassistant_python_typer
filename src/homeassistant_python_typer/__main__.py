@@ -4,6 +4,8 @@ import json
 import os
 import sys
 
+from .services import infer_services_superclasses, per_entity_domain_services
+
 
 def main():
     # Read from env variables
@@ -30,8 +32,11 @@ def main():
         with open("services.json", "w") as services_file:
             services_file.write(json.dumps(hm_services, indent=4))
 
+    # Per-domain lookup table of services
+    hm_services_dict = per_entity_domain_services(hm_services)
+
     # body of the class, class name
-    classes_per_body: dict[str, str] = {}
+    classes_per_body: dict[str, Tuple[str, str]] = {}
 
     # entity id, body
     entities: list[Tuple[str, str]] = []
@@ -43,9 +48,19 @@ def main():
         entity_id: str = entity["entity_id"]
         domain, entity_name = entity_id.split(".", 1)
 
-        class_name = f"entity__{domain}__{entity_name}"
         superclass = "Light" if domain == "light" else "Entity"
-        entity_body = f"    class {class_name}(hapth.{superclass}):\n        pass"
+        superclasses = ", ".join(
+            infer_services_superclasses(
+                domain=domain,
+                entity_attributes=entity["attributes"],
+                classes_per_body=classes_per_body,
+                hm_services=hm_services_dict,
+            )
+            + [f"hapth.{superclass}"]
+        )
+
+        class_name = f"entity__{domain}__{entity_name}"
+        entity_body = f"    class {class_name}({superclasses}):\n        pass"
         entities.append((entity_name, entity_body))
 
         entity_type_in_domain = class_name
@@ -54,7 +69,7 @@ def main():
         domains[domain].append((entity_name, entity_type_in_domain))
 
     services_classes = [
-        (class_name, body) for body, class_name in classes_per_body.items()
+        (class_name, body) for _, (class_name, body) in classes_per_body.items()
     ]
     services_classes.sort(key=lambda x: x[0])  # sort by name for consistency
     entities.sort(key=lambda x: x[0])  # sort by name for consistency

@@ -1,6 +1,4 @@
-from typing import Any, Tuple
-
-superclass_counter = 1
+from typing import Any, Iterable, Tuple
 
 
 def infer_services_superclasses(
@@ -8,6 +6,7 @@ def infer_services_superclasses(
     entity_attributes: dict[str, Any],
     classes_per_body: dict[str, Tuple[str, str]],
     hm_services: dict[str, list[Tuple[str, str, Any]]],
+    enum_types: dict[Tuple[str, str], Tuple[str, str]],
 ) -> list[str]:
     extra_superclasses: list[str] = []
     for service_domain_name, service_name, service_data in hm_services.get(domain, []):
@@ -27,8 +26,16 @@ def infer_services_superclasses(
                     self,"""
         service_data_dict = ""
         for field_name, field_data in fields.items():
-            field_type_and_default = choose_field_type(field_data)
+            field_type_and_default, field_value_construction = choose_field_type(
+                field_name, field_data["selector"], enum_types=enum_types
+            )
             required = field_data.get("required", False)
+            if field_value_construction is None:
+                field_value_construction = field_name
+            elif not required:
+                field_value_construction = (
+                    f"{field_value_construction} if {field_name} is not None else None"
+                )
             if not required:
                 field_type_and_default = f"{field_type_and_default} | None = None"
             if service_data_dict == "":
@@ -38,7 +45,7 @@ def infer_services_superclasses(
             superclass_body += f"""
                     {field_name}: {field_type_and_default},"""
             service_data_dict += f"""
-                            "{field_name}": {field_name},"""
+                            "{field_name}": {field_value_construction},"""
         if service_data_dict != "":
             service_data_dict += """
                         """
@@ -53,11 +60,7 @@ def infer_services_superclasses(
         if superclass_body in classes_per_body:
             extra_superclasses.append(classes_per_body[superclass_body][0])
         else:
-            global superclass_counter
-            superclass_name = (
-                f"service__{service_domain_name}__{service_name}__{superclass_counter}"
-            )
-            superclass_counter += 1
+            superclass_name = f"service__{service_domain_name}__{service_name}__{len(classes_per_body)}"
             superclass_full_body = (
                 f"""
             class {superclass_name}(hapth.Entity):"""
@@ -68,8 +71,64 @@ def infer_services_superclasses(
     return extra_superclasses
 
 
-def choose_field_type(selector: dict[str, Any]) -> str:
-    return "str"
+def choose_field_type(
+    field_name: str,
+    selector: dict[str, Any],
+    enum_types: dict[Tuple[str, str], Tuple[str, str]],
+) -> Tuple[str, str | None]:
+    selector_is_object = lambda: all(
+        map(lambda v: v == "object", selector)
+    )  # unspecified type
+    if "text" in selector:
+        return "str", None
+    elif "number" in selector:
+        if isinstance(selector["number"].get("step", 1), int):
+            return "int", None
+        return "float", None
+    elif "boolean" in selector:
+        return "bool", None
+    elif "date" in selector or "datetime" in selector:
+        # TODO probably can use a better type here?
+        return "str", None
+    elif "select" in selector:
+        select = selector["select"]
+        options = select["options"]
+        options: Iterable[str] = (
+            repr(option["value"]) if isinstance(option, dict) else repr(option)  # type: ignore[reportArgumentType]
+            for option in options
+        )
+        type = f"Literal[{", ".join(options)}]"
+        if (field_name, type) in enum_types:
+            return enum_types[(field_name, type)][0], None
+        else:
+            enum_type_name = f"Options{field_name.title()}{len(enum_types)}"
+            enum_types[(field_name, type)] = (
+                enum_type_name,
+                f"{enum_type_name}: TypeAlias = {type}",
+            )
+            return enum_type_name, None
+    elif "entity" in selector:
+        # TODO probably replace with a {Domain}Entity type (that is added to the available supertypes
+        # if anything references it here or among existing entities)
+        # LightEntity would be special-cased to inherit LightEntityExt
+        # transformator would not be None, but instead be `(lambda x: x.entity_id)`
+        return "hapth.Entity", f"{field_name}.entity_id"
+    elif "color_rgb" in selector or (
+        field_name == "rgb_color" and selector_is_object()
+    ):
+        return (
+            "Tuple[int, int, int] | list[int] | str",
+            f"hapth.rgb_color({field_name})",
+        )
+    elif "color_temp" in selector:
+        return "int", None
+    elif "color_xy" in selector or (field_name == "xy_color" and selector_is_object()):
+        return "Tuple[float, float]", None
+    elif "color_hs" in selector or (field_name == "hs_color" and selector_is_object()):
+        return "Tuple[float, float]", None
+    else:
+        print(f"Warning: Unknown field type for {field_name}: {selector}")
+        return "Any", None
 
 
 def per_entity_domain_services(

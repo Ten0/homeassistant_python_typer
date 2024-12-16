@@ -44,6 +44,9 @@ def main():
     # domain name, [(entity id, init_body)]
     domains: dict[str, list[Tuple[str, str]]] = {}
 
+    # (field name, type) -> (type alias name, type alias declaration)
+    enum_types: dict[Tuple[str, str], Tuple[str, str]] = {}
+
     for entity in hm_entities:
         entity_id: str = entity["entity_id"]
         domain, entity_name = entity_id.split(".", 1)
@@ -55,6 +58,7 @@ def main():
                 entity_attributes=entity["attributes"],
                 classes_per_body=classes_per_body,
                 hm_services=hm_services_dict,
+                enum_types=enum_types,
             )
             + [f"hapth.{superclass}"]
         )
@@ -81,7 +85,10 @@ def main():
     for _, domain_entities in domains_classes:
         domain_entities.sort(key=lambda x: x[0])
 
-    services_classes_body = "\n\n".join((value for _, value in services_classes))
+    enum_declarations_body = "\n".join((value for _, value in enum_types.values()))
+    services_classes_body = "\n\n".join(
+        (value for _, value in services_classes)
+    ).lstrip("\n")
     entities_classes_body = "\n\n".join((value for _, value in entities))
     domains_classes_body = ""
     domains_init_body = ""
@@ -104,8 +111,17 @@ def main():
 
     # TODO reverse order
     out = f"""
+    # This file is generated automatically by homeassistant_python_typer
+
+    # pyright: reportUnusedImport = false
     from appdaemon.adbase import ADBase
     import homeassistant_python_typer_helpers as hapth
+    from typing import TypeAlias, Literal, Tuple, Any
+
+
+    # Declare type aliases for all "select" options
+{retab(enum_declarations_body)}
+
 
     # Declare all services classes
 {retab(services_classes_body)}

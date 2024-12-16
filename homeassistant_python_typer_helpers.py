@@ -135,3 +135,19 @@ class Domain:
         raise AttributeError(
             f"Entity {entity_name} not found in domain {self._domain_name}"
         )
+
+
+def rgb_color(
+    rgb_array_or_str: list[int] | tuple[int, int, int] | str
+) -> tuple[int, int, int]:
+    if isinstance(rgb_array_or_str, str):
+        # Convert from hashtag hex representation to the RGB tuple
+        rgb_array_or_str = [int(rgb_array_or_str[i : i + 2], 16) for i in (0, 2, 4)]
+    if isinstance(rgb_array_or_str, list):
+        if len(rgb_array_or_str) != 3:
+            raise ValueError("RGB color array must have 3 elements (red, green, blue)")
+        red, green, blue = rgb_array_or_str
+        if not all(0 <= color <= 255 for color in rgb_array_or_str):
+            raise ValueError("RGB color values must be between 0 and 255")
+        return red, green, blue
+    return rgb_array_or_str

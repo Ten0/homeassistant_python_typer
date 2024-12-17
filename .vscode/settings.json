@@ -20,5 +20,6 @@
 		"reportUnusedVariable": "warning",
 		"reportUnusedCoroutine": "warning",
 		"reportUnusedExpression": "warning",
-	}
+	},
+	"editor.insertSpaces": true,
 }

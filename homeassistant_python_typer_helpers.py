@@ -1,5 +1,6 @@
 from typing import Any, Literal, Optional, TypeAlias
 from appdaemon.adbase import ADBase
+from appdaemon.utils import sync_wrapper
 
 OnOff: TypeAlias = Literal["on", "off"]
 
@@ -32,6 +33,13 @@ class Entity:
         self.entity_id = entity_id
         self.namespace = namespace or self.hapt.ad.namespace
 
+        # Unfortunately we need those for the sync_wrapper to work
+        self.name = self.hapt.ad.name
+        "Name of the appdaemon app that this Entity is linked to - not a property of the entity itself"
+        self.AD = self.hapt.ad.AD
+        "AppDaemon instance"
+
+    @sync_wrapper
     async def call(self, domain: str, service: str, data: dict[str, Any]) -> None:
         """
         Asynchronously calls a Home Assistant service.
@@ -58,12 +66,13 @@ class Entity:
         data["__name"] = self.hapt.ad.name
 
         # TODO check returns and headless async calls in async doc
-        return await self.hapt.ad.AD.services.call_service(
+        return await self.AD.services.call_service(
             self.namespace, domain, service, data
         )
 
     # We will eventually try typing this as well but there's no API to know for sure what can be in there this time
     # so for now we'll skip it
+    @sync_wrapper
     async def get_state_raw(
         self,
         attribute: str | None = None,
@@ -85,41 +94,6 @@ class Entity:
         return await self.hapt.adapi.get_entity(
             self.entity_id, namespace=self.namespace
         ).get_state(attribute=attribute, default=default, copy=copy, **kwargs)
-
-
-class Light(Entity):
-    """
-    Represents a Light entity in Home Assistant.
-
-    Any entity in the `light` domain when introspected will inherit this class
-    """
-
-    async def state(
-        self,
-    ) -> OnOff:
-        """
-        Retrieve the state of the light.
-
-        Returns:
-            "on"/"off": The state of the entity.
-        """
-        return await super().get_state_raw()
-
-    async def is_on(self) -> bool:
-        """
-        Check if the light is on.
-
-        Returns:
-            bool: True if the light is on, False otherwise.
-        """
-        light_state = await self.state()
-        match light_state:
-            case "off":
-                return False
-            case "on":
-                return True
-            case _:  # type: ignore[reportUnnecessaryComparison]
-                raise ValueError(f"Unexpected light state: {light_state}")
 
 
 class Domain:
@@ -155,3 +129,73 @@ def rgb_color(
             raise ValueError("RGB color values must be between 0 and 255")
         return red, green, blue
     return rgb_array_or_str
+
+
+class Light(Entity):
+    """
+    Represents a Light entity in Home Assistant.
+
+    Any entity in the `light` domain when introspected will inherit this class
+    """
+
+    def state(
+        self,
+    ) -> OnOff:
+        """
+        Retrieve the state of the light.
+
+        Returns:
+            "on"/"off": The state of the entity.
+        """
+        return super().get_state_raw()
+
+    def is_on(self) -> bool:
+        """
+        Check if the light is on.
+
+        Returns:
+            bool: True if the light is on, False otherwise.
+        """
+        light_state = self.state()
+        match light_state:
+            case "off":
+                return False
+            case "on":
+                return True
+            case _:  # pyright: ignore[reportUnnecessaryComparison]
+                raise ValueError(f"Unexpected light state: {light_state}")
+
+
+class LightAsync(Entity):
+    """
+    Represents a Light entity in Home Assistant.
+
+    Any entity in the `light` domain when introspected will inherit this class
+    """
+
+    async def state(
+        self,
+    ) -> OnOff:
+        """
+        Retrieve the state of the light.
+
+        Returns:
+            "on"/"off": The state of the entity.
+        """
+        return await super().get_state_raw()
+
+    async def is_on(self) -> bool:
+        """
+        Check if the light is on.
+
+        Returns:
+            bool: True if the light is on, False otherwise.
+        """
+        light_state = await self.state()
+        match light_state:
+            case "off":
+                return False
+            case "on":
+                return True
+            case _:  # pyright: ignore[reportUnnecessaryComparison]
+                raise ValueError(f"Unexpected light state: {light_state}")

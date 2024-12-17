@@ -25,6 +25,8 @@ def main():
     hm_entities = client.get("states")
     hm_services = client.get("services")
 
+    generate_as_async = "--async" in sys.argv
+
     if "-d" in sys.argv:
         # For debugging
         with open("entities.json", "w") as entities_file:
@@ -51,7 +53,11 @@ def main():
         entity_id: str = entity["entity_id"]
         domain, entity_name = entity_id.split(".", 1)
 
-        superclass = "Light" if domain == "light" else "Entity"
+        superclass = (
+            "Entity"
+            if domain != "light"
+            else ("Light" if not generate_as_async else "LightAsync")
+        )
         superclasses = ", ".join(
             infer_services_superclasses(
                 domain=domain,
@@ -170,6 +176,9 @@ def main():
     out = remove_common_indent_levels(out).strip("\n")
     if not out.endswith("\n"):
         out += "\n"
+
+    if not generate_as_async:
+        out = out.replace("async def", "def").replace("await ", "")
 
     with open(output_filename, "w") as output_file:
         output_file.write(out)

@@ -2,9 +2,13 @@
 
 Full-fledged typing for your home automation applications. Never see your automations break again.
 
+Bring a real software development experience to your home automation.
+
 # What
 
-Run this script to obtain type definitions for all devices available in Home Assistant, which can then be exported to your appdaemon apps folder for use in any appdaemon app.
+Run this script to obtain type definitions for all devices available in Home Assistant, which can then be exported to your [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) apps folder for use in any AppDaemon app.
+
+![VSCode screenshot of how it highlights errors](docs/typing_demo.png)
 
 See [How it works](#how-it-works) section for how to setup.
 
@@ -22,12 +26,52 @@ Also if you make the slightest mistake, nothing will catch it until it fails to 
 
 ## Code?
 
-Now [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) was built to address this problem: to allow expressing automations in Python rather than Yaml+Jinja when they get really complex (or when you find writing lines of code simpler than clicking left and right in dropdowns.)
+<details>
+<summary>Why code is better than no-code</summary>
+
+Section title is a bit provocative, so:
+
+DISCLAIMER: I acknowledge no-code may be faster to write very simple stuff, e.g. if someone presses the button, switch the light, or ring the bell. Anything that's basically a full use-case directly available as a single no-code box may be slightly easier with no-code. I also acknowledge that HomeAssistant's no-code platform is very powerful, and that it's amazingly good to have it for how accessible it makes it for people to start playing around with home automation.
+
+What I want to underline here is how great of a tool *code* is for writing automations, how little harder it is to write code for simple cases, how much simpler it is to write code for hard cases, and how often cases actually end up being harder than they looked at first glance. So if you start getting invested in home automation, and you want to tackle non-trivial automations, you may be interested by what programming with actual code has to offer!
+
+If you have some developing experience and have ever touched a no-code platform, it's probably going to quickly be very clear to you how no-code is always quickly limited and inefficient, and how you quickly end up spending more time working around the tool's limitations than you spend actually writing automation logic. Otherwise, this section is for you.
+
+With no-code tooling:
+
+1. Anything that's not a directly supported use-case is either extremely tedious to write, or uses the "poorly-typed-code™" box of the no-code platform (for HA, [Templates](https://www.home-assistant.io/integrations/template/)) which is also tedious, but also is code (just more tedious and harder to maintain than it should be).
+
+2. No-code lacks version control. If you want to quickly revert a part of your changes, you need to remember what it was like before and revert by hand. With code, you can write your new version, test it directly on your computer (saving the file will reload the app immediately), and when you're ready, send it to a permanent state with a single command. (In my case, `git commit`, which also incidentally is the best way to store software version history.)
+
+3. No code lacks variables and functions, so you repeat the same boxes (or almost the same boxes) multiple times. If you need to make ~ the same changes to multiple automations, it will take you many clicks per automation, whereas with code, factoring is not 50 clicks, so you've probably just already written a function, so you can probably just change that one function. Otherwise a "search in all files" will get you sorted in seconds.
+
+4. No-code lacks typing. If an entity becomes unavailable, or changes name, or you don't pass the right entity to a bluebrint, automations break, but noone will warn you. You only notice it when something doesn't work as expected, and then you spend a lot of time diagnosing why. With code, your editor immediately gives you a big red line in case of mistake, so that doesn't take any time.
+
+5. When you write no-code, you're actually already using 90% of the skills of a developer who writes programs using code:
+   - Thinking about how to solve the problem on a high level (I want this to happen if this happens)
+   - Thinking about what triggers automations
+   - Thinking about how to turn that into a set of conditions and actions (if/else...)
+   - Pointing to entities and actions to take on them
+   
+   Compared to all these skills you need anyway to program using a no-code platform, writing python code just requires knowing [a 2-minute-read syntax](https://awangt.medium.com/python-in-2-minute-read-16984bea892f).
+
+[A longer video explanation](https://youtu.be/uxBZFju0Mjs&t=104).
+
+Code solves all the aforementioned pain points.
+
+In the "automate things with a computer" world, besides very specialized tasks, actual code is the most efficient way we know to automate things in a flexible manner today today.
+
+That is in great part because the software industry is so big that it has developed over the years amazing tools to make that development experience absolutely seamless!
+
+Side note: If you don't already use it, learn `git` by using a graphical git client, e.g. VCode + Git Graph extension, or SmartGit (or both), to understand the concepts well, and store your code on there. It's easier than you think, and that way every version of your code is saved. Never fear to break stuff!
+</details>
+
+Now [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) was built to address this problem: to allow expressing automations in an actual programming language (Python) rather than Yaml+Jinja, when they get complex (or when you find writing lines of code simpler than clicking left and right in dropdowns - after all, variables are a useful concept...)
 
 Unfortunately it has its shortcomings: namely you lose the nice auto-completion that you get from the UI, where all your entities and actions you can take on them are easily accessible.
 Instead you have to enter entity IDs as strings, and hope that whatever function you're calling on them actually exists. In addition, most of home assistant's automations don't pre-exist in the API, so you'll also have to call them by their string names.
 
-Again, if you make mistakes, if you lose devices on the network, or refer non-existing properties, nothing will catch until you try to run them.
+Again, if you make mistakes, if you lose devices on the network, or refer non-existing properties, nothing will catch it until you try to run them.
 
 ## So what?
 
@@ -61,7 +105,7 @@ class SensorLight(hass.Hass):
     def on_motion_detected(self, entity, attribute, old, new, cb_args):
         self.light.turn_on(
             # This typechecks:
-            # - Whether the `color_name` attribute exists (auto-completed)
+            # - Whether the `color_name` parameter exists (auto-completed)
             # - Whether HomeAssistant knows about this particular color name (auto-completed)
             # - And even whether RGB support is available for your particular lightbulb!
             color_name="lavenderblush"
@@ -83,9 +127,33 @@ where:
 
 ## Additional setup
 
+### AppDaemon
+
+Of course this requires AppDaemon to be installed on HomeAssistant.
+
+You may use the [AppDaemon add-on of HomeAssistant](https://github.com/hassio-addons/repository/blob/master/appdaemon/DOCS.md) for this.
+
+I found that by default it would use an app folder shipped with the add-on. I haven't found great documentation on how to avoid this, so here's some:
+
+By putting your `appdaemon.yaml` in your [Home Assistant config folder](https://www.home-assistant.io/docs/configuration/#to-find-the-configuration-directory) (in an `appdaemon` directory), [putting](https://appdaemon.readthedocs.io/en/latest/CONFIGURE.html#appdaemon) `app_dir: /homeassistant/appdaemon/apps` in `appdaemon.yaml`, and using `cp /homeassistant/appdaemon/appdaemon.yml /config/appdaemon.yaml` as "init command" in the add-on configuration, it would indeed start AppDaemon using the relevant directory where I'm putting my apps.
+
+Note that if running AppDeamon locally instead (which is significantly more practical than copying the files to whatever device HA is running on during development, and enables e.g. using a debugger...), it doesn't support relative paths for `app_dir`. ([#309](https://github.com/AppDaemon/appdaemon/issues/309#issuecomment-959449004))
+
+### Let the homeassistant_python_typer script know where your HomeAssistant instance is
+
+This is done via two environment variables:
+- `HOMEASSISTANT_URL`: The URL of your HomeAssistant instance
+- `HOMEASSISTANT_TOKEN`: A [long-lived token to your HomeAssistant instance](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten)
+
+You may make them accessible without friction as you `cd` into the relevant project folder by using [`direnv`](https://direnv.net/).
+
+### Python configuration & venv
+
+Install python, [create a virtual environment and install appdaemon in there](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/), then [select the venv in `VSCode`](https://code.visualstudio.com/docs/python/environments).
+
 ### Typer configuration
 
-To have the typer catch as many mistakes as possible right from your editor, you should configure [`pyright`](https://github.com/microsoft/pyright) (default typer of VsCode) with appropriate typing constraints.
+To have the typer catch as many mistakes as possible right from your editor, you should configure [`pyright`](https://github.com/microsoft/pyright) (default typer of VsCode) with appropriate typing constraints in the project where you develop your own automations (with `hapt.py` copied there).
 
 Suggested parameters are available in this repository's `.vscode/settings.json`.
 
@@ -97,12 +165,74 @@ For now it's also required to copy the `homeassistant_python_typer_helpers.py` f
 
 This will probably get cleaned up eventually in favor of letting the script do that copy for you as well (you'd specify an output directory), or by having the script write all of that into `hapt.py`, or having it as a `pip` dependency.
 
-## Async
+### Async
 
 If you prefer to use appdaemon's async interface, you can generate the corresponding type definitions by:
 ```console
 homeassistant_python_typer /path/to/hapt.py --async
 ```
+
+## Community
+
+This project is in its early stages, and this README is probably not as detailed as it could be, so there may be some rough edges, (esp. if you're beginning with programming with code).
+
+If you have even the simplest question, or ideas, please open a [Discussion](https://github.com/Ten0/homeassistant_python_typer/discussions/categories/q-a) so we can improve!
+
+If you find bugs (missing functions, incorrect types, Any types where useful to have more precise types, crashes...) please open an issue.
+
+# Diverse how-to s
+
+## Debugger
+
+This documentation really belongs in AppDaemon's doc but it isn't there so...
+
+With VSCode's debugger, and appdaemon installed in a python virtual env with pip and selected as Python interpreter in VSCode (which is necessary for typing to work in your IDE anyway):
+
+```jsonc
+// .vscode/launch.json
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Debug Appdaemon & their apps",
+			"type": "debugpy",
+			"request": "launch",
+			"module": "appdaemon",
+			"args": [
+				"-c",
+				"absolute/path/to/folder/that/contains/appdaemon.yml", 
+				// without appdaemon.yml at the end of the path, only point to the folder
+			]
+		}
+	]
+}
+```
+
+Then follow [the regular VSCode + Python debugger doc](https://code.visualstudio.com/docs/python/debugging).
+
+# Vision
+
+Future ideas for this project:
+1. Make it easy to link GitHub & HomeAssistant via an integration that can:
+
+   a. Configure webhooks to automatically pull the code and restart AppDaemon when new updates to the automations are pushed, and sends back ✅ status check to github.
+     - Right now I've got this setup for my own HomeAssistant but the setup is more difficult that one might like.
+
+   b. Automatically introspect HomeAssistant and push `hapt.py` updates on your personal `git` repository automatically when entities or services are added/removed.
+
+   c. Automatically flag failed builds ❌ on such commits if they remove entities or services that were needed by some automations, and allow plugging notification automations to tell home owner what broke.
+
+2. Make sure it's easy to plug your own entities into automations distributed by others, while preserving typing ("automation libraries").
+
+   It's not completely solved how to do this currently. Currently considered options:
+
+   a. Introduce superclasses for common uses and distribute them as a `homeassistant_python_typer_helpers` library. "automation libraries" would depend on this and have their typechecking rely on these being implemented. Downside: this is heavy, and probably requires a lot of manual work.
+
+   b. Don't put type annotations in libraries, and let type inference work out what concrete type we're attempting to run the library with. Downside: this doesn't work well with e.g. `list[light_a, light_b]`: each light has its own type, for loops may not work great... But maybe it will just consider the list's type as `list[union[entity_a, entity_b]]` and it will realize that the function exists with these arguments on both so it won't complain that it doesn't know which one it will actually be. I haven't tested yet...
+
+3. Make it possible to easily bump "automation libraries" with typechecking (dependencies lockfiles and dependabot PRs, that can optionally auto-merge if typechecking passes?)
+
+4. Improve typing on entities states and attributes (currently only light: `on`/`off` is hardcoded)
 
 # Inspirations
 

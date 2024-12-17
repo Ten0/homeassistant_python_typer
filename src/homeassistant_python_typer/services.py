@@ -34,7 +34,11 @@ def infer_services_superclasses(
 
             # It should indeed be active
             field_type_and_default, field_value_construction = choose_field_type(
-                field_name, field_data["selector"], enum_types=enum_types
+                field_name,
+                field_data["selector"],
+                enum_types=enum_types,
+                domain=service_domain_name,
+                service=service_name,
             )
             required = field_data.get("required", False)
             if field_value_construction is None:
@@ -97,6 +101,8 @@ def choose_field_type(
     field_name: str,
     selector: dict[str, Any],
     enum_types: dict[Tuple[str, str], Tuple[str, str]],
+    domain: str,  # for error message
+    service: str,  # for error message
 ) -> Tuple[str, str | None]:
     selector_is_object = lambda: all(
         map(lambda v: v == "object", selector)
@@ -150,7 +156,9 @@ def choose_field_type(
     elif "color_hs" in selector or (field_name == "hs_color" and selector_is_object()):
         return "Tuple[float, float]", None
     else:
-        print(f"Warning: Unknown field type for {field_name}: {selector}")
+        print(
+            f"Warning: Unknown field type for {domain}/{service} - {field_name}: {selector}"
+        )
         return "Any", None
 
 

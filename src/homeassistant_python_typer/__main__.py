@@ -63,8 +63,20 @@ def main():
             + [f"hapth.{superclass}"]
         )
 
+        entity_friendly_name = (entity.get("attributes", {})).get("friendly_name", None)
+
         class_name = f"entity__{domain}__{entity_name}"
-        entity_body = f"    class {class_name}({superclasses}):\n        pass"
+        entity_body = retab(
+            f"""
+            class {class_name}({superclasses}):
+                \"""
+                `{entity_id}`: {entity_friendly_name}
+                \"""
+                pass""".lstrip(
+                "\n"
+            ),
+            1,
+        )
         entities.append((entity_name, entity_body))
 
         entity_type_in_domain = class_name
@@ -74,7 +86,7 @@ def main():
             (
                 entity_name,
                 entity_type_in_domain,
-                (entity.get("attributes", {})).get("friendly_name", None),
+                entity_friendly_name,
             )
         )
 

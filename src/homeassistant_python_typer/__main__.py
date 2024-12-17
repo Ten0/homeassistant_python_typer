@@ -41,8 +41,8 @@ def main():
     # entity id, body
     entities: list[Tuple[str, str]] = []
 
-    # domain name, [(entity id, init_body)]
-    domains: dict[str, list[Tuple[str, str]]] = {}
+    # domain name, [(entity name, entity type in domain, entity doc)]
+    domains: dict[str, list[Tuple[str, str, str | None]]] = {}
 
     # (field name, type) -> (type alias name, type alias declaration)
     enum_types: dict[Tuple[str, str], Tuple[str, str]] = {}
@@ -70,7 +70,13 @@ def main():
         entity_type_in_domain = class_name
         if domain not in domains:
             domains[domain] = []
-        domains[domain].append((entity_name, entity_type_in_domain))
+        domains[domain].append(
+            (
+                entity_name,
+                entity_type_in_domain,
+                (entity.get("attributes", {})).get("friendly_name", None),
+            )
+        )
 
     services_classes = [
         (class_name, body) for _, (class_name, body) in classes_per_body.items()
@@ -95,16 +101,23 @@ def main():
     for domain_name, domain_entities in domains_classes:
         domain_name_in_title_case = domain_name.title()
         if domains_classes_body != "":
-            domains_classes_body += "\n\n"
+            domains_classes_body += "\n"
         domains_classes_body += f"""
         class {domain_name_in_title_case}Domain(hapth.Domain):
             def __init__(self, hapt: hapth.HaptSharedState):
                 super().__init__(hapt, "{domain_name}")\n\n""".lstrip(
             "\n"
         )
-        for entity_name, entity_type_in_domain in domain_entities:
+        for entity_name, entity_type_in_domain, entity_docstring in domain_entities:
+            entity_docstring = (
+                ("\n" + repr(entity_docstring)) if entity_docstring else ""
+            )
             domains_classes_body += (
-                tab(f"{entity_name}: {entity_type_in_domain}", 3) + "\n"
+                tab(
+                    f"{entity_name}: {entity_type_in_domain}{entity_docstring}",
+                    3,
+                )
+                + "\n\n"
             )
         domains_init_body += f"""
             self.{domain_name} = {domain_name_in_title_case}Domain(hapt)"""

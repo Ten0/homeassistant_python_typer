@@ -33,13 +33,15 @@ def infer_services_superclasses(
                 continue
 
             # It should indeed be active
+            selector = field_data["selector"]
             field_type_and_default, field_value_construction = choose_field_type(
                 field_name,
-                field_data["selector"],
+                selector,
                 enum_types=enum_types,
                 domain=service_domain_name,
                 service=service_name,
             )
+
             required = field_data.get("required", False)
             if field_value_construction is None:
                 field_value_construction = field_name
@@ -47,8 +49,17 @@ def infer_services_superclasses(
                 field_value_construction = (
                     f"{field_value_construction} if {field_name} is not None else None"
                 )
+
+            if all(
+                (
+                    isinstance(v, dict) and v.get("multiple", False)
+                    for v in selector.values()
+                )  # pyright: ignore[reportUnknownArgumentType]
+            ):
+                field_type_and_default = f"list[{field_type_and_default}]"
             if not required:
                 field_type_and_default = f"{field_type_and_default} | None = None"
+
             if service_data_dict == "":
                 # First field, prevent non-keyword arguments
                 superclass_body += f"""

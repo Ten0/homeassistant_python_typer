@@ -64,8 +64,15 @@ class SensorLight(hass.Hass):
 where:
 - If you were to typo the name of the light, you'd get a nice big red error message stating that this light doesn't exist in your Home Assistant
 - If your light were to not support RGB because it's a light where only the temperature and brightness can be configured, you'd get a nice big red error message stating that `rgb_color` is not available for `hallway_light`'s `turn_on`.
+- Wherever you would get a dropdown in HomeAssistant's no-code editor, you'll get auto-completion and type checking for all possible input values for the parameter.
 - All functions and function parameters are documented (with the same documentation as in the no-code UI)
 - Every function available in Home Assistant is available (because they are introspected by the same API as HomeAssistant uses for its no-code interface)
+
+## Additional setup
+
+For now it's also required to copy the `homeassistant_python_typer_helpers.py` file from this repository to your app folder as well.
+
+This will probably get cleaned up eventually in favor of just writing all of that into `hapt.py`, or having it as a `pip` dependency.
 
 ## Async
 

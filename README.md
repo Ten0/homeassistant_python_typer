@@ -56,9 +56,9 @@ class SensorLight(hass.Hass):
             new="on",
         )
 
-    async def on_motion_detected(self, entity, attribute, old, new, cb_args):
+    def on_motion_detected(self, entity, attribute, old, new, cb_args):
         # even whether RGB support is available is typechecked!
-        await self.light.turn_on(rgb_color="#6F2DA8", brightness=203) 
+        self.light.turn_on(rgb_color="#6F2DA8", brightness=203) 
 ```
 
 where:
@@ -66,3 +66,10 @@ where:
 - If your light were to not support RGB because it's a light where only the temperature and brightness can be configured, you'd get a nice big red error message stating that `rgb_color` is not available for `hallway_light`'s `turn_on`.
 - All functions and function parameters are documented (with the same documentation as in the no-code UI)
 - Every function available in Home Assistant is available (because they are introspected by the same API as HomeAssistant uses for its no-code interface)
+
+## Async
+
+If you prefer to use appdaemon's async interface, you can generate the corresponding type definitions by:
+```console
+homeassistant_python_typer /path/to/hapt.py --async
+```

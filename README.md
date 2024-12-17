@@ -1,6 +1,6 @@
 # HomeAssistant Python typer
 
-Full-fledged typing for your automation applications. Never see your automations break again.
+Full-fledged typing for your home automation applications. Never see your automations break again.
 
 # What
 

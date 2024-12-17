@@ -6,6 +6,8 @@ Full-fledged typing for your home automation applications. Never see your automa
 
 Run this script to obtain type definitions for all devices available in Home Assistant, which can then be exported to your appdaemon apps folder for use in any appdaemon app.
 
+See [How it works](#how-it-works) section for how to setup.
+
 # Why
 
 ## Nocode?
@@ -57,8 +59,19 @@ class SensorLight(hass.Hass):
         )
 
     def on_motion_detected(self, entity, attribute, old, new, cb_args):
-        # even whether RGB support is available is typechecked!
-        self.light.turn_on(rgb_color="#6F2DA8", brightness=203) 
+        self.light.turn_on(
+            # This typechecks:
+            # - Whether the `color_name` attribute exists (auto-completed)
+            # - Whether HomeAssistant knows about this particular color name (auto-completed)
+            # - And even whether RGB support is available for your particular lightbulb!
+            color_name="lavenderblush"
+
+            # Alternatively (not both at the same time of course):
+            # Again this typechecks that your lightbulb supports RGB
+            rgb_color="#6F2DA8",
+
+            brightness=255
+        )
 ```
 
 where:
@@ -70,9 +83,19 @@ where:
 
 ## Additional setup
 
+### Typer configuration
+
+To have the typer catch as many mistakes as possible right from your editor, you should configure [`pyright`](https://github.com/microsoft/pyright) (default typer of VsCode) with appropriate typing constraints.
+
+Suggested parameters are available in this repository's `.vscode/settings.json`.
+
+It is recommended to use the same parameters when working on your AppDaemon Apps.
+
+### Also copy the library associated with the codegen
+
 For now it's also required to copy the `homeassistant_python_typer_helpers.py` file from this repository to your app folder as well.
 
-This will probably get cleaned up eventually in favor of just writing all of that into `hapt.py`, or having it as a `pip` dependency.
+This will probably get cleaned up eventually in favor of letting the script do that copy for you as well (you'd specify an output directory), or by having the script write all of that into `hapt.py`, or having it as a `pip` dependency.
 
 ## Async
 
@@ -80,3 +103,7 @@ If you prefer to use appdaemon's async interface, you can generate the correspon
 ```console
 homeassistant_python_typer /path/to/hapt.py --async
 ```
+
+# Inspirations
+
+I (Ten0) am a core team member of [Diesel](https://diesel.rs/), the #1 library of the Rust ecosystem for doing precisely this (bringing native typechecking capabilities from introspection) for the general case of SQL databases.

@@ -25,6 +25,7 @@ def infer_services_superclasses(
                 async def {service_name}(
                     self,"""
         service_data_dict = ""
+        parameters_doc = ""
         for field_name, field_data in fields.items():
             # Make sure the field should actually be active for this particular instance,
             # based on filter
@@ -52,11 +53,26 @@ def infer_services_superclasses(
                     {field_name}: {field_type_and_default},"""
             service_data_dict += f"""
                             "{field_name}": {field_value_construction},"""
+            parameters_doc += f"""
+                    `{field_name}` (`{field_type_and_default}`{"" if required else ", optional"})"""
+            description = field_data.get("description", field_data.get("name", ""))
+            if description:
+                parameters_doc += f"""
+                        {field_data.get("description", field_data.get("name", ""))}"""
+            parameters_doc += "\n"
+        if parameters_doc.endswith("\n"):
+            parameters_doc = parameters_doc[:-1]
         if service_data_dict != "":
             service_data_dict += """
                         """
         superclass_body += f"""
                 ) -> None:
+                    \"""
+                    {service_data.get("description", service_data.get("name", ""))}
+
+                    Parameters
+                    ----------{parameters_doc}
+                    \"""
                     await self.call(
                         "{service_domain_name}",
                         "{service_name}",

@@ -64,4 +64,5 @@ class SensorLight(hass.Hass):
 where:
 - If you were to typo the name of the light, you'd get a nice big red error message stating that this light doesn't exist in your Home Assistant
 - If your light were to not support RGB because it's a light where only the temperature and brightness can be configured, you'd get a nice big red error message stating that `rgb_color` is not available for `hallway_light`'s `turn_on`.
+- All functions and function parameters are documented (with the same documentation as in the no-code UI)
 - Every function available in Home Assistant is available (because they are introspected by the same API as HomeAssistant uses for its no-code interface)

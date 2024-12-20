@@ -137,18 +137,18 @@ def rgb_color(
     return rgb_array_or_str
 
 
-class Light(Entity):
+class OnOffState(Entity):
     """
-    Represents a Light entity in Home Assistant.
+    Represents any entity whose state can only be "on" or "off".
 
-    Any entity in the `light` domain when introspected will inherit this class
+    This provides better typing and an `is_on` function for entities that can only be on or off.
     """
 
     def state(
         self,
     ) -> OnOff:
         """
-        Retrieve the state of the light.
+        Retrieve the state of the entity.
 
         Returns:
             "on"/"off": The state of the entity.
@@ -157,33 +157,33 @@ class Light(Entity):
 
     def is_on(self) -> bool:
         """
-        Check if the light is on.
+        Check if the entity is on.
 
         Returns:
-            bool: True if the light is on, False otherwise.
+            bool: True if the entity is on, False otherwise.
         """
-        light_state = self.state()
-        match light_state:
+        entity_state = self.state()
+        match entity_state:
             case "off":
                 return False
             case "on":
                 return True
             case _:  # pyright: ignore[reportUnnecessaryComparison]
-                raise ValueError(f"Unexpected light state: {light_state}")
+                raise ValueError(f"Unexpected entity state: {entity_state}")
 
 
-class LightAsync(Entity):
+class OnOffStateAsync(Entity):
     """
-    Represents a Light entity in Home Assistant.
+    Represents any entity whose state can only be "on" or "off".
 
-    Any entity in the `light` domain when introspected will inherit this class
+    This provides better typing and an `is_on` function for entities that can only be on or off.
     """
 
     async def state(
         self,
     ) -> OnOff:
         """
-        Retrieve the state of the light.
+        Retrieve the state of the entity.
 
         Returns:
             "on"/"off": The state of the entity.
@@ -192,16 +192,48 @@ class LightAsync(Entity):
 
     async def is_on(self) -> bool:
         """
-        Check if the light is on.
+        Check if the entity is on.
 
         Returns:
-            bool: True if the light is on, False otherwise.
+            bool: True if the entity is on, False otherwise.
         """
-        light_state = await self.state()
-        match light_state:
+        entity_state = await self.state()
+        match entity_state:
             case "off":
                 return False
             case "on":
                 return True
             case _:  # pyright: ignore[reportUnnecessaryComparison]
-                raise ValueError(f"Unexpected light state: {light_state}")
+                raise ValueError(f"Unexpected entity state: {entity_state}")
+
+
+class Light(OnOffState):
+    """
+    Represents a Light entity in Home Assistant.
+
+    Any entity in the `light` domain when introspected will inherit this class
+    """
+
+
+class BinarySensor(OnOffState):
+    """
+    Represents a Binary Sensor entity in Home Assistant.
+
+    Any entity in the `binary_sensor` domain when introspected will inherit this class
+    """
+
+
+class LightAsync(OnOffStateAsync):
+    """
+    Represents a Light entity in Home Assistant.
+
+    Any entity in the `light` domain when introspected will inherit this class
+    """
+
+
+class BinarySensorAsync(OnOffStateAsync):
+    """
+    Represents a Binary Sensor entity in Home Assistant.
+
+    Any entity in the `binary_sensor` domain when introspected will inherit this class
+    """

@@ -53,11 +53,18 @@ def main():
         entity_id: str = entity["entity_id"]
         domain, entity_name = entity_id.split(".", 1)
 
-        superclass = (
-            "Entity"
-            if domain != "light"
-            else ("Light" if not generate_as_async else "LightAsync")
-        )
+        superclass = "Entity"
+        match domain:
+            case "light":
+                superclass = "Light" if not generate_as_async else "LightAsync"
+            case "binary_sensor":
+                superclass = (
+                    "BinarySensor" if not generate_as_async else "BinarySensorAsync"
+                )
+            case _:
+                # match can't be expressions in Python :(
+                pass
+
         superclasses = ", ".join(
             infer_services_superclasses(
                 domain=domain,

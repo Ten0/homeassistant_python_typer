@@ -121,7 +121,11 @@ def choose_field_type(
     if "text" in selector:
         return "str", None
     elif "number" in selector:
-        if isinstance(selector["number"].get("step", 1), int):
+        number = selector["number"]
+        if (
+            isinstance(number.get("step", 1), int)
+            and not number.get("unit_of_measurement") == "seconds"
+        ):
             return "int", None
         return "float", None
     elif "boolean" in selector:

@@ -171,6 +171,15 @@ class OnOffState(Entity):
             case _:  # pyright: ignore[reportUnnecessaryComparison]
                 raise ValueError(f"Unexpected entity state: {entity_state}")
 
+    def is_off(self) -> bool:
+        """
+        Check if the entity is off.
+
+        Returns:
+            bool: True if the entity is off, False otherwise.
+        """
+        return not self.is_on()
+
 
 class OnOffStateAsync(Entity):
     """
@@ -205,6 +214,15 @@ class OnOffStateAsync(Entity):
                 return True
             case _:  # pyright: ignore[reportUnnecessaryComparison]
                 raise ValueError(f"Unexpected entity state: {entity_state}")
+
+    async def is_off(self) -> bool:
+        """
+        Check if the entity is off.
+
+        Returns:
+            bool: True if the entity is off, False otherwise.
+        """
+        return not await self.is_on()
 
 
 class Light(OnOffState):

@@ -177,6 +177,7 @@ def main():
     class Entities:
         def __init__(self, ad: ADBase):
             hapt = hapth.HaptSharedState(ad)
+            self.hapt = hapt # So that users can call clear_caches() if writing appdaemon handlers directly
 {domains_init_body}
     """
 

@@ -165,13 +165,6 @@ For now it's also required to copy the `homeassistant_python_typer_helpers.py` f
 
 This will probably get cleaned up eventually in favor of letting the script do that copy for you as well (you'd specify an output directory), or by having the script write all of that into `hapt.py`, or having it as a `pip` dependency.
 
-### Async
-
-If you prefer to use appdaemon's async interface, you can generate the corresponding type definitions by:
-```console
-homeassistant_python_typer /path/to/hapt.py --async
-```
-
 ## Community
 
 This project is in its early stages, and this README is probably not as detailed as it could be, so there may be some rough edges, (esp. if you're beginning with programming with code).

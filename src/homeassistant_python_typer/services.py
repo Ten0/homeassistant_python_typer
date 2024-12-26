@@ -105,6 +105,7 @@ def infer_services_superclasses(
             )
             classes_per_body[superclass_body] = (superclass_name, superclass_full_body)
             extra_superclasses.append(superclass_name)
+
     return extra_superclasses
 
 

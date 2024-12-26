@@ -5,6 +5,7 @@ import os
 import sys
 
 from .services import infer_services_superclasses, per_entity_domain_services
+from .states import infer_state_superlcass
 
 
 def main():
@@ -66,7 +67,12 @@ def main():
                 pass
 
         superclasses = ", ".join(
-            infer_services_superclasses(
+            infer_state_superlcass(
+                entity_attributes=entity["attributes"],
+                classes_per_body=classes_per_body,
+                enum_types=enum_types,
+            )
+            + infer_services_superclasses(
                 domain=domain,
                 entity_attributes=entity["attributes"],
                 classes_per_body=classes_per_body,

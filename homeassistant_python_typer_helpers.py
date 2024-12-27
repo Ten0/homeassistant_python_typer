@@ -172,6 +172,10 @@ class Entity:
         self,
         callback: Callable[FunctionArgsGeneric, None],
         attribute: str | None = None,
+        new: Any = None,
+        old: Any = None,
+        duration_s: int | None = None,
+        timeout_s: int | None = None,
         *args: FunctionArgsGeneric.args,
         **kwargs: FunctionArgsGeneric.kwargs,
     ) -> None:
@@ -181,6 +185,35 @@ class Entity:
         Args:
             callback (Callable): The callback to call when the state changes.
             attribute (str): The attribute to listen to. If None, the state of the entity is listened to.
+
+            new (optional): If ``new`` is supplied as a parameter, callbacks will only be made if the
+                state of the selected attribute (usually state) in the new state match the value
+                of ``new``. The parameter type is defined by the namespace or plugin that is responsible
+                for the entity. If it looks like a float, list, or dictionary, it may actually be a string.
+                If ``new`` is a callable (lambda, function, etc), then it will be invoked with the new state,
+                and if it returns ``True``, it will be considered to match.
+            old (optional): If ``old`` is supplied as a parameter, callbacks will only be made if the
+                state of the selected attribute (usually state) in the old state match the value
+                of ``old``. The same caveats on types for the ``new`` parameter apply to this parameter.
+                If ``old`` is a callable (lambda, function, etc), then it will be invoked with the old state,
+                and if it returns a ``True``, it will be considered to match.
+
+            duration_s (int, optional): If ``duration`` is supplied as a parameter, the callback will not
+                fire unless the state listened for is maintained for that number of seconds. This
+                requires that a specific attribute is specified (or the default of ``state`` is used),
+                and should be used in conjunction with the ``old`` or ``new`` parameters, or both. When
+                the callback is called, it is supplied with the values of ``entity``, ``attr``, ``old``,
+                and ``new`` that were current at the time the actual event occurred, since the assumption
+                is that none of them have changed in the intervening period.
+
+                If you use ``duration`` when listening for an entire device type rather than a specific
+                entity, or for all state changes, you may get unpredictable results, so it is recommended
+                that this parameter is only used in conjunction with the state of specific entities.
+
+            timeout_s (int, optional): If ``timeout`` is supplied as a parameter, the callback will be created as normal,
+                 but after ``timeout`` seconds, the callback will be removed. If activity for the listened state has
+                 occurred that would trigger a duration timer, the duration timer will still be fired even though the
+                 callback has been deleted.
             *args: Additional arguments to pass to the callback.
             **kwargs: Additional keyword arguments to pass to the callback.
         """
@@ -201,7 +234,20 @@ class Entity:
                 self.hapt.state_cache[self.entity_id] = new["state"]
             callback(*args, **kwargs)
 
-        self.hapt.adapi.listen_state(callback_wrapper, self.entity_id)
+        listen_kwargs: dict[str, Any] = {}
+        for kwarg_name, kwarg_value in {
+            "new": new,
+            "old": old,
+            "duration": duration_s,
+            "timeout": timeout_s,
+        }.items():
+            if kwarg_value is not None:
+                listen_kwargs[kwarg_name] = kwarg_value
+        if "duration" in listen_kwargs:
+            # I don't think there's a use-case for anything else...
+            listen_kwargs["immediate"] = True
+
+        self.hapt.adapi.listen_state(callback_wrapper, self.entity_id, **listen_kwargs)
 
     def last_changed(self) -> datetime:
         """

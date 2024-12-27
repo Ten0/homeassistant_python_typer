@@ -1,4 +1,12 @@
-from typing import Any, Callable, Literal, Optional, ParamSpec, TypeAlias
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Literal,
+    Optional,
+    ParamSpec,
+    TypeAlias,
+)
 from appdaemon.adbase import ADBase
 from appdaemon.utils import sync_wrapper
 
@@ -196,20 +204,22 @@ class Domain:
         self._hapt = hapt
         self._domain_name = domain_name
 
-    def __getattr__(self, entity_name: str) -> Entity:
-        # We lazily initialize fields as they get used, so that initializing `Entities`
-        # doesn't allocate unnecessary resources: each app is probably going to sparsely use
-        # the entities.
-        # We only enter __getattr__ if the attribute is not already set.
-        if entity_class := self.__class__.__annotations__.get(entity_name):
-            entity = entity_class(
-                hapt=self._hapt, entity_id=f"{self._domain_name}.{entity_name}"
+    if not TYPE_CHECKING:
+
+        def __getattr__(self, entity_name: str) -> object:
+            # We lazily initialize fields as they get used, so that initializing `Entities`
+            # doesn't allocate unnecessary resources: each app is probably going to sparsely use
+            # the entities.
+            # We only enter __getattr__ if the attribute is not already set.
+            if entity_class := self.__class__.__annotations__.get(entity_name):
+                entity = entity_class(
+                    hapt=self._hapt, entity_id=f"{self._domain_name}.{entity_name}"
+                )
+                setattr(self, entity_name, entity)  # cache it for next time
+                return entity
+            raise AttributeError(
+                f"Entity {entity_name} not found in domain {self._domain_name}"
             )
-            setattr(self, entity_name, entity)  # cache it for next time
-            return entity
-        raise AttributeError(
-            f"Entity {entity_name} not found in domain {self._domain_name}"
-        )
 
 
 def rgb_color(

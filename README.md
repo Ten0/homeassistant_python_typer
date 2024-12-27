@@ -94,15 +94,11 @@ class SensorLight(hass.Hass):
     def initialize(self):
         self.entities = Entities(self)
         self.light = self.entities.light.hallway_light # typechecks & autocompletes
+        self.sensor = self.entities.binary_sensor.hallway_motion_sensor_occupancy
 
-        # Not yet improved boilerplate: listen to sensor
-        self.listen_state(
-            self.on_motion_detected,
-            self.entities.binary_sensor.hallway_motion_sensor_occupancy.entity_id,
-            new="on",
-        )
+        self.sensor.listen_state(self.on_motion_detected, new="on")
 
-    def on_motion_detected(self, entity, attribute, old, new, cb_args):
+    def on_motion_detected(self):
         self.light.turn_on(
             # This typechecks:
             # - Whether the `color_name` parameter exists (auto-completed)
@@ -221,7 +217,11 @@ Future ideas for this project:
 
    a. Introduce superclasses for common uses and distribute them as a `homeassistant_python_typer_helpers` library. "automation libraries" would depend on this and have their typechecking rely on these being implemented. Downside: this is heavy, and probably requires a lot of manual work.
 
-   b. Don't put type annotations in libraries, and let type inference work out what concrete type we're attempting to run the library with. Downside: this doesn't work well with e.g. `list[light_a, light_b]`: each light has its own type, for loops may not work great... But maybe it will just consider the list's type as `list[union[entity_a, entity_b]]` and it will realize that the function exists with these arguments on both so it won't complain that it doesn't know which one it will actually be. I haven't tested yet...
+   b. Don't put type annotations in libraries, and let type inference work out what concrete type we're attempting to run the library with. Downside: type inference only goes so far: if automation uses its own classes, it will end up with `Any` or `Unknown` in many places, which will prevent typechecking from checking anything.
+
+   c. Do b. and advise library authors to use [Protocols](https://peps.python.org/pep-0544/). This may be better than a. for the reason that this allows locally extending the subclasses without having to change `hapt.py`. Downside: unless we provide a database of protocols (like a.) this will be very heavy for implementors. In addition because I don't know of a way to define a type alias for a type annotation that reads: "any type that implements this non-protocol class BUT also implements this protocol class" (trying to do this: `class RgbLight(hapth.OnOffState, Protocol)` gives `Protocol class "RgbLight" cannot derive from non-Protocol class "OnOffState"`) this probably means we need to dupplicate all of our classes as protocol classes to ease such declarations, which is both bothersome and worse typing.
+    - Idea: we could automatically generate protocol classes for each conditional argument of a service. This makes defining protocols for arguments combinations reasonably doable.
+
 
 3. Make it possible to easily bump "automation libraries" with typechecking (dependencies lockfiles and dependabot PRs, that can optionally auto-merge if typechecking passes?)
 

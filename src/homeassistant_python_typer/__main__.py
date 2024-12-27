@@ -53,32 +53,35 @@ def main():
     for entity in hm_entities:
         entity_id: str = entity["entity_id"]
         domain, entity_name = entity_id.split(".", 1)
+        entity_attributes = entity["attributes"]
 
         superclass = "Entity"
         match domain:
-            case "light":
-                superclass = "Light" if not generate_as_async else "LightAsync"
-            case "binary_sensor":
+            case "light" | "binary_sensor" | "input_boolean" | "switch":
                 superclass = (
-                    "BinarySensor" if not generate_as_async else "BinarySensorAsync"
+                    "OnOffState" if not generate_as_async else "OnOffStateAsync"
                 )
             case "input_button":
                 superclass = (
                     "InputButton" if not generate_as_async else "InputButtonAsync"
                 )
+            case (
+                "climate"
+            ) if "temperature" in entity_attributes and "current_temperature" in entity_attributes:
+                superclass = "Climate" if not generate_as_async else "ClimateAsync"
             case _:
                 # match can't be expressions in Python :(
                 pass
 
         superclasses = ", ".join(
             infer_state_superlcass(
-                entity_attributes=entity["attributes"],
+                entity_attributes=entity_attributes,
                 classes_per_body=classes_per_body,
                 enum_types=enum_types,
             )
             + infer_services_superclasses(
                 domain=domain,
-                entity_attributes=entity["attributes"],
+                entity_attributes=entity_attributes,
                 classes_per_body=classes_per_body,
                 hm_services=hm_services_dict,
                 enum_types=enum_types,

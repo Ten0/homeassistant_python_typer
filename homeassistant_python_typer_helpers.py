@@ -162,7 +162,11 @@ class Entity:
                 return entity_state["attributes"][attribute]
             if attribute in entity_state:
                 return entity_state[attribute]
-            return default
+            if default is not None:
+                return default
+            raise ValueError(
+                f"Attribute {attribute} not found for entity {self.entity_id}"
+            )
 
     def listen_state(
         self,
@@ -198,6 +202,17 @@ class Entity:
             callback(*args, **kwargs)
 
         self.hapt.adapi.listen_state(callback_wrapper, self.entity_id)
+
+    def last_changed(self) -> datetime:
+        """
+        Get the last time the entity changed state.
+
+        Returns:
+            datetime: The last time the entity changed state.
+        """
+        return datetime.fromisoformat(
+            self.get_state_repeatable_read(attribute="last_changed")
+        )
 
 
 class Domain:
@@ -287,22 +302,6 @@ class OnOffState(Entity):
         return not self.is_on()
 
 
-class Light(OnOffState):
-    """
-    Represents a Light entity in Home Assistant.
-
-    Any entity in the `light` domain when introspected will inherit this class
-    """
-
-
-class BinarySensor(OnOffState):
-    """
-    Represents a Binary Sensor entity in Home Assistant.
-
-    Any entity in the `binary_sensor` domain when introspected will inherit this class
-    """
-
-
 class InputButton(Entity):
     """
     Represents an Input Button entity in Home Assistant.
@@ -321,3 +320,30 @@ class InputButton(Entity):
         if state == "unknown":
             return None
         return datetime.fromisoformat(state)
+
+
+class Climate(Entity):
+    """
+    Represents a Climate (Thermostat) entity in Home Assistant.
+
+    Any entity in the `climate` domain when introspected will inherit this class if it also has
+    the `temperature` and `current_temperature` attributes.
+    """
+
+    def temperature(self) -> float:
+        """
+        Retrieve the target temperature of the thermostat.
+
+        Returns:
+            float: The target temperature of the thermostat.
+        """
+        return self.get_state_repeatable_read(attribute="temperature")
+
+    def current_temperature(self) -> float:
+        """
+        Retrieve the current temperature of the thermostat (sensor).
+
+        Returns:
+            float: The current temperature of the thermostat.
+        """
+        return self.get_state_repeatable_read(attribute="current_temperature")

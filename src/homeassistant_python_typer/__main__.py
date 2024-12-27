@@ -62,6 +62,10 @@ def main():
                 superclass = (
                     "BinarySensor" if not generate_as_async else "BinarySensorAsync"
                 )
+            case "input_button":
+                superclass = (
+                    "InputButton" if not generate_as_async else "InputButtonAsync"
+                )
             case _:
                 # match can't be expressions in Python :(
                 pass

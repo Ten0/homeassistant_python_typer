@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -300,3 +301,23 @@ class BinarySensor(OnOffState):
 
     Any entity in the `binary_sensor` domain when introspected will inherit this class
     """
+
+
+class InputButton(Entity):
+    """
+    Represents an Input Button entity in Home Assistant.
+
+    Any entity in the `input_button` domain when introspected will inherit this class
+    """
+
+    def last_pressed_at(self) -> datetime | None:
+        """
+        Retrieve when the button was last pressed.
+
+        Returns:
+            datetime | None: When the button was last pressed, or None if we don't know of a press.
+        """
+        state = self.get_state_repeatable_read()
+        if state == "unknown":
+            return None
+        return datetime.fromisoformat(state)

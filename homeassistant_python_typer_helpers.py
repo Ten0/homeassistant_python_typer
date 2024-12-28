@@ -170,7 +170,7 @@ class Entity:
 
     def listen_state(
         self,
-        callback: Callable[FunctionArgsGeneric, None],
+        callback: Callable[FunctionArgsGeneric, Any],
         attribute: str | None = None,
         new: Any = None,
         old: Any = None,
@@ -224,7 +224,7 @@ class Entity:
             old: Any,
             new: Any,
             cb_args: dict[str, object],
-        ):
+        ) -> None:
             self.hapt.clear_caches()
             assert self.entity_id == entity
             if attribute is None:

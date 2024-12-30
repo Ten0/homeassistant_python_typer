@@ -53,6 +53,8 @@ def state_type(
         match device_class:
             # https://www.home-assistant.io/integrations/homeassistant/#device-class (click each platform)
             case "enum":
+                # I'm not 100% confident that this can't also return "unknown" (or "unavailable" for e.g. lights),
+                # might need to add that to the list (in which case that would probably be None)
                 options = entity_attributes["options"]
                 return_type = enum_type(options, enum_types)
                 doc = f"""

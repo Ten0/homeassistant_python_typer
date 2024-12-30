@@ -78,6 +78,7 @@ def main():
                 entity_attributes=entity_attributes,
                 classes_per_body=classes_per_body,
                 enum_types=enum_types,
+                entity_id=entity_id,
             )
             + infer_services_superclasses(
                 domain=domain,

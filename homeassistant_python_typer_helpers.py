@@ -304,6 +304,13 @@ def rgb_color(
     return rgb_array_or_str
 
 
+def int_or_float(s: str) -> int | float:
+    if "." not in s:
+        return int(s)
+    else:
+        return float(s)
+
+
 class OnOffState(Entity):
     """
     Represents any entity whose state can only be "on" or "off".

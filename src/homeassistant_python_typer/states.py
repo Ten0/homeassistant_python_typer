@@ -8,7 +8,7 @@ def infer_state_superlcass(
     entity_id: str,
 ) -> list[str]:
     extra_superclasses: list[str] = []
-    return_type, doc = state_type(entity_attributes, enum_types, entity_id)
+    return_type, cast, doc = state_type(entity_attributes, enum_types, entity_id)
 
     if return_type is not None:
         superclass_body = f"""
@@ -24,7 +24,7 @@ def infer_state_superlcass(
                     Returns:
                         The state of the entity.{doc}
                     \"""
-                    return await super().get_state_repeatable_read()"""
+                    return await {'' if cast is None else f'{cast}('}super().get_state_repeatable_read(){'' if cast is None else ')'}"""
         if superclass_body in classes_per_body:
             extra_superclasses.append(classes_per_body[superclass_body][0])
         else:
@@ -44,8 +44,9 @@ def state_type(
     entity_attributes: dict[str, Any],
     enum_types: dict[Tuple[str, str], Tuple[str, str]],
     entity_id: str,
-) -> Tuple[str | None, str]:
+) -> Tuple[str | None, str | None, str]:
     return_type: str | None = None
+    cast = None
     doc: str = ""
     if "device_class" in entity_attributes:
         device_class = entity_attributes["device_class"]
@@ -72,7 +73,9 @@ def state_type(
                 | "frequency"
             ):
                 # I'm not 100% confident that this can't also return "unknown", might need to add that to the list
+                # (in which case that would probably be None)
                 return_type = "int | float"
+                cast = "hapth.int_or_float"
             case _:
                 print(
                     f"Warning: Unknown device class '{device_class}' for entity '{entity_id}'"
@@ -87,7 +90,7 @@ def state_type(
     if doc != "" and return_type is None:
         # At least print out the doc
         return_type = "Any"
-    return return_type, doc
+    return return_type, cast, doc
 
 
 def enum_type(options: list[str], enum_types: dict[Tuple[str, str], Tuple[str, str]]):

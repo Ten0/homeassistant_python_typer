@@ -168,6 +168,16 @@ class Entity:
                 f"Attribute {attribute} not found for entity {self.entity_id}"
             )
 
+    def consistent_cache(self):
+        """
+        Loads the full cache, including state and all attributes
+
+        This is useful if looking at the state of the entity but also its attributes. Without this,
+        if loading only the state then other attributes, the attributes may be loaded later than the state
+        and thus be inconsistent.
+        """
+        self.get_state_repeatable_read(attribute="all")
+
     def listen_state(
         self,
         callback: Callable[FunctionArgsGeneric, Any],
@@ -240,6 +250,7 @@ class Entity:
             "old": old,
             "duration": duration_s,
             "timeout": timeout_s,
+            "attribute": attribute,
         }.items():
             if kwarg_value is not None:
                 listen_kwargs[kwarg_name] = kwarg_value
@@ -258,6 +269,17 @@ class Entity:
         """
         return datetime.fromisoformat(
             self.get_state_repeatable_read(attribute="last_changed")
+        )
+
+    def last_reported(self) -> datetime:
+        """
+        Get the last time the entity changed state.
+
+        Returns:
+            datetime: The last time the entity changed state.
+        """
+        return datetime.fromisoformat(
+            self.get_state_repeatable_read(attribute="last_reported")
         )
 
 

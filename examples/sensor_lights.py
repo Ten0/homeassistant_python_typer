@@ -24,6 +24,8 @@ class HallwaySensorLights(hass.Hass):
         self.sensor = self.entities.binary_sensor.hallway_motion_sensor_occupancy
 
         self.timer = None
+        # Track that we asked turn off otherwise we may skip turn_on command while it's turning off (because is_on())
+        self.gave_order_to_turn_off = False
 
         self.sensor.listen_state(self.check_sensor)
         self.run_daily(self.check_light_trigger, night_start)  # day mode to night mode
@@ -52,7 +54,7 @@ class HallwaySensorLights(hass.Hass):
     def set_light(self):
         should_be_on = self.sensor.is_on() or self.timer is not None
         if should_be_on:
-            if not self.light.is_on():
+            if not self.light.is_on() or self.gave_order_to_turn_off:
                 if self.is_night():
                     # Let's not get super bright light when going to the bathroom at night
                     self.light.turn_on(
@@ -60,14 +62,16 @@ class HallwaySensorLights(hass.Hass):
                     )
                 else:
                     self.light.turn_on(brightness=255, kelvin=2202, transition=0.1)
+                self.gave_order_to_turn_off = False
         else:
             if self.light.is_on():
                 self.light.turn_off(transition=3)
+                self.gave_order_to_turn_off = True
 
     def set_timer(self):
         if self.timer is None:
             self.timer = self.run_in(
-                self.timer_trigger, 4 * 60 if self.is_night() else 60
+                self.timer_trigger, 4 * 60 if self.is_night() else 2 * 60
             )
 
     def clear_timer(self):

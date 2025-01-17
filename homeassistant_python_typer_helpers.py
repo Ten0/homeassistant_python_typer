@@ -195,6 +195,7 @@ class Entity:
         Args:
             callback (Callable): The callback to call when the state changes.
             attribute (str): The attribute to listen to. If None, the state of the entity is listened to.
+                If `all`, listen for change on any attribute.
 
             new (optional): If ``new`` is supplied as a parameter, callbacks will only be made if the
                 state of the selected attribute (usually state) in the new state match the value

@@ -37,6 +37,7 @@ def infer_services_superclasses(
             field_type_and_default, field_value_construction = choose_field_type(
                 field_name,
                 selector,
+                entity_attributes=entity_attributes,
                 enum_types=enum_types,
                 domain=service_domain_name,
                 service=service_name,
@@ -112,14 +113,19 @@ def infer_services_superclasses(
 def choose_field_type(
     field_name: str,
     selector: dict[str, Any],
+    entity_attributes: dict[str, Any],
     enum_types: dict[Tuple[str, str], Tuple[str, str]],
     domain: str,  # for error message
     service: str,  # for error message
 ) -> Tuple[str, str | None]:
+    "returns type and optionally field value construction override"
+
     selector_is_object = lambda: all(
         map(lambda v: v == "object", selector)
     )  # unspecified type
     if "text" in selector:
+        if domain == "select" and "options" in entity_attributes:
+            return enum(field_name, entity_attributes["options"], enum_types), None
         return "str", None
     elif "number" in selector:
         number = selector["number"]
@@ -136,21 +142,7 @@ def choose_field_type(
         return "str", None
     elif "select" in selector:
         select = selector["select"]
-        options = select["options"]
-        options: Iterable[str] = (
-            repr(option["value"]) if isinstance(option, dict) else repr(option)  # type: ignore[reportArgumentType]
-            for option in options
-        )
-        type = f"Literal[{", ".join(options)}]"
-        if (field_name, type) in enum_types:
-            return enum_types[(field_name, type)][0], None
-        else:
-            enum_type_name = f"Options{field_name.title()}{len(enum_types)}"
-            enum_types[(field_name, type)] = (
-                enum_type_name,
-                f"{enum_type_name}: TypeAlias = {type}",
-            )
-            return enum_type_name, None
+        return enum(field_name, select["options"], enum_types), None
     elif "entity" in selector:
         # TODO probably replace with a {Domain}Entity type (that is added to the available supertypes
         # if anything references it here or among existing entities)
@@ -176,6 +168,28 @@ def choose_field_type(
             f"Warning: Unknown field type for {domain}/{service} - {field_name}: {selector}"
         )
         return "Any", None
+
+
+def enum(
+    field_name: str,
+    options: Iterable[str | dict[str, Any]],
+    enum_types: dict[Tuple[str, str], Tuple[str, str]],
+) -> str:
+    "Finds or create the necessary enum in enum_types, and returns its name"
+    options_repr: Iterable[str] = (
+        repr(option["value"]) if isinstance(option, dict) else repr(option)
+        for option in options
+    )
+    type = f"Literal[{", ".join(options_repr)}]"
+    if (field_name, type) in enum_types:
+        return enum_types[(field_name, type)][0]
+    else:
+        enum_type_name = f"Options{field_name.title()}{len(enum_types)}"
+        enum_types[(field_name, type)] = (
+            enum_type_name,
+            f"{enum_type_name}: TypeAlias = {type}",
+        )
+        return enum_type_name
 
 
 def field_is_available_for_entity(

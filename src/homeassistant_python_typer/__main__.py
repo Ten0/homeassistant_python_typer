@@ -5,7 +5,8 @@ import os
 import sys
 
 from .services import infer_services_superclasses, per_entity_domain_services
-from .states import infer_state_superlcass
+from .states import infer_state_superclass
+from .dataclasses import *
 
 
 def main():
@@ -39,16 +40,16 @@ def main():
     hm_services_dict = per_entity_domain_services(hm_services)
 
     # body of the class, class name
-    classes_per_body: dict[str, Tuple[str, str]] = {}
+    classes_per_body: dict[str, ServiceClass] = {}
 
     # entity id, body
-    entities: list[Tuple[str, str]] = []
+    entities: list[Entity] = []
 
     # domain name, [(entity name, entity type in domain, entity doc)]
-    domains: dict[str, list[Tuple[str, str, str | None]]] = {}
+    domains: dict[str, Domain] = {}
 
     # (field name, type) -> (type alias name, type alias declaration)
-    enum_types: dict[Tuple[str, str], Tuple[str, str]] = {}
+    enum_types: dict[Tuple[str, str], TypeAlias] = {}
 
     for entity in hm_entities:
         entity_id: str = entity["entity_id"]
@@ -74,7 +75,7 @@ def main():
                 pass
 
         superclasses = ", ".join(
-            infer_state_superlcass(
+            infer_state_superclass(
                 entity_attributes=entity_attributes,
                 classes_per_body=classes_per_body,
                 enum_types=enum_types,
@@ -90,54 +91,58 @@ def main():
             + [f"hapth.{superclass}"]
         )
 
-        entity_friendly_name = (entity.get("attributes", {})).get("friendly_name", None)
+        entity_friendly_name: str | None = (entity.get("attributes", {})).get(
+            "friendly_name", None
+        )
 
         class_name = f"entity__{domain}__{entity_name}"
         entity_body = retab(
             f"""
             class {class_name}({superclasses}):
                 \"""
-                `{entity_id}`: {entity_friendly_name}
+                `{entity_id}`{f": {entity_friendly_name}" if entity_friendly_name else ""}
                 \"""
                 pass""".lstrip(
                 "\n"
             ),
             1,
         )
-        entities.append((entity_name, entity_body))
+        entities.append(Entity(name=entity_name, declaration_body=entity_body))
 
         entity_type_in_domain = class_name
         if domain not in domains:
-            domains[domain] = []
-        domains[domain].append(
-            (
-                entity_name,
-                entity_type_in_domain,
-                entity_friendly_name,
+            domains[domain] = Domain(entities=[])
+        domains[domain].entities.append(
+            DomainEntity(
+                name=entity_name,
+                type_name=entity_type_in_domain,
+                friendly_name=entity_friendly_name,
             )
         )
 
-    services_classes = [
-        (class_name, body) for _, (class_name, body) in classes_per_body.items()
-    ]
-    services_classes.sort(key=lambda x: x[0])  # sort by name for consistency
-    entities.sort(key=lambda x: x[0])  # sort by name for consistency
+    services_classes = [service_class for _, service_class in classes_per_body.items()]
+    services_classes.sort(key=lambda s: s.name)  # sort by name for consistency
+    entities.sort(key=lambda e: e.name)  # sort by name for consistency
     domains_classes = [
         (domain_name, domain_entities)
         for domain_name, domain_entities in domains.items()
     ]
     domains_classes.sort(key=lambda x: x[0])  # sort by name for consistency
-    for _, domain_entities in domains_classes:
-        domain_entities.sort(key=lambda x: x[0])
+    for _, domain in domains_classes:
+        domain.entities.sort(key=lambda e: e.name)
 
-    enum_declarations_body = "\n".join((value for _, value in enum_types.values()))
+    enum_declarations_body = "\n".join(
+        (type_alias.declaration for type_alias in enum_types.values())
+    )
     services_classes_body = "\n\n".join(
-        (value for _, value in services_classes)
+        (service_class.body for service_class in services_classes)
     ).lstrip("\n")
-    entities_classes_body = "\n\n".join((value for _, value in entities))
+    entities_classes_body = "\n\n".join(
+        (entity.declaration_body for entity in entities)
+    )
     domains_classes_body = ""
     domains_init_body = ""
-    for domain_name, domain_entities in domains_classes:
+    for domain_name, domain in domains_classes:
         domain_name_in_title_case = domain_name.title()
         if domains_classes_body != "":
             domains_classes_body += "\n"
@@ -147,13 +152,13 @@ def main():
                 super().__init__(hapt, "{domain_name}")\n\n""".lstrip(
             "\n"
         )
-        for entity_name, entity_type_in_domain, entity_docstring in domain_entities:
+        for entity in domain.entities:
             entity_docstring = (
-                ("\n" + repr(entity_docstring)) if entity_docstring else ""
+                ("\n" + repr(entity.friendly_name)) if entity.friendly_name else ""
             )
             domains_classes_body += (
                 tab(
-                    f"{entity_name}: {entity_type_in_domain}{entity_docstring}",
+                    f"{entity.name}: {entity.type_name}{entity_docstring}",
                     3,
                 )
                 + "\n\n"

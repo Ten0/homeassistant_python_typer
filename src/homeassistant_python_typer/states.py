@@ -1,10 +1,11 @@
-from typing import Any, Iterable, Tuple
+from typing import Any, Tuple
+from .dataclasses import *
 
 
-def infer_state_superlcass(
+def infer_state_superclass(
     entity_attributes: dict[str, Any],
-    classes_per_body: dict[str, Tuple[str, str]],
-    enum_types: dict[Tuple[str, str], Tuple[str, str]],
+    classes_per_body: dict[str, ServiceClass],
+    enum_types: dict[Tuple[str, str], TypeAlias],
     entity_id: str,
 ) -> list[str]:
     extra_superclasses: list[str] = []
@@ -26,7 +27,7 @@ def infer_state_superlcass(
                     \"""
                     return await {'' if cast is None else f'{cast}('}super().get_state_repeatable_read(){'' if cast is None else ')'}"""
         if superclass_body in classes_per_body:
-            extra_superclasses.append(classes_per_body[superclass_body][0])
+            extra_superclasses.append(classes_per_body[superclass_body].name)
         else:
             superclass_name = f"state__{len(classes_per_body)}"
             superclass_full_body = (
@@ -34,7 +35,9 @@ def infer_state_superlcass(
             class {superclass_name}(hapth.Entity):"""
                 + superclass_body
             )
-            classes_per_body[superclass_body] = (superclass_name, superclass_full_body)
+            classes_per_body[superclass_body] = ServiceClass(
+                name=superclass_name, body=superclass_full_body
+            )
             extra_superclasses.append(superclass_name)
 
     return extra_superclasses
@@ -42,7 +45,7 @@ def infer_state_superlcass(
 
 def state_type(
     entity_attributes: dict[str, Any],
-    enum_types: dict[Tuple[str, str], Tuple[str, str]],
+    enum_types: dict[Tuple[str, str], TypeAlias],
     entity_id: str,
 ) -> Tuple[str | None, str | None, str]:
     return_type: str | None = None
@@ -56,7 +59,7 @@ def state_type(
                 # I'm not 100% confident that this can't also return "unknown" (or "unavailable" for e.g. lights),
                 # might need to add that to the list (in which case that would probably be None)
                 options = entity_attributes["options"]
-                return_type = enum_type(options, enum_types)
+                return_type = enum_type("state", "State", options, enum_types)
                 doc = f"""
                         Possible states:
                         - {'\n                        - '.join((f"`{option}`" for option in options))}"""
@@ -93,18 +96,3 @@ def state_type(
         # At least print out the doc
         return_type = "Any"
     return return_type, cast, doc
-
-
-def enum_type(options: list[str], enum_types: dict[Tuple[str, str], Tuple[str, str]]):
-    options_iter: Iterable[str] = (repr(option) for option in options)
-    field_name = "state"
-    type = f"Literal[{", ".join(options_iter)}]"
-    if (field_name, type) in enum_types:
-        return enum_types[(field_name, type)][0]
-    else:
-        enum_type_name = f"State{len(enum_types)}"
-        enum_types[(field_name, type)] = (
-            enum_type_name,
-            f"{enum_type_name}: TypeAlias = {type}",
-        )
-        return enum_type_name

@@ -1,12 +1,13 @@
 from typing import Any, Iterable, Tuple
+from .dataclasses import *
 
 
 def infer_services_superclasses(
     domain: str,
     entity_attributes: dict[str, Any],
-    classes_per_body: dict[str, Tuple[str, str]],
+    classes_per_body: dict[str, ServiceClass],
     hm_services: dict[str, list[Tuple[str, str, Any]]],
-    enum_types: dict[Tuple[str, str], Tuple[str, str]],
+    enum_types: dict[Tuple[str, str], TypeAlias],
 ) -> list[str]:
     extra_superclasses: list[str] = []
     for service_domain_name, service_name, service_data in hm_services.get(domain, []):
@@ -96,7 +97,7 @@ def infer_services_superclasses(
                     )"""
 
         if superclass_body in classes_per_body:
-            extra_superclasses.append(classes_per_body[superclass_body][0])
+            extra_superclasses.append(classes_per_body[superclass_body].name)
         else:
             superclass_name = f"service__{service_domain_name}__{service_name}__{len(classes_per_body)}"
             superclass_full_body = (
@@ -104,7 +105,9 @@ def infer_services_superclasses(
             class {superclass_name}(hapth.Entity):"""
                 + superclass_body
             )
-            classes_per_body[superclass_body] = (superclass_name, superclass_full_body)
+            classes_per_body[superclass_body] = ServiceClass(
+                name=superclass_name, body=superclass_full_body
+            )
             extra_superclasses.append(superclass_name)
 
     return extra_superclasses
@@ -114,7 +117,7 @@ def choose_field_type(
     field_name: str,
     selector: dict[str, Any],
     entity_attributes: dict[str, Any],
-    enum_types: dict[Tuple[str, str], Tuple[str, str]],
+    enum_types: dict[Tuple[str, str], TypeAlias],
     domain: str,  # for error message
     service: str,  # for error message
 ) -> Tuple[str, str | None]:
@@ -125,7 +128,10 @@ def choose_field_type(
     )  # unspecified type
     if "text" in selector:
         if domain == "select" and "options" in entity_attributes:
-            return enum(field_name, entity_attributes["options"], enum_types), None
+            return (
+                options_enum_type(field_name, entity_attributes["options"], enum_types),
+                None,
+            )
         return "str", None
     elif "number" in selector:
         number = selector["number"]
@@ -142,7 +148,7 @@ def choose_field_type(
         return "str", None
     elif "select" in selector:
         select = selector["select"]
-        return enum(field_name, select["options"], enum_types), None
+        return options_enum_type(field_name, select["options"], enum_types), None
     elif "entity" in selector:
         # TODO probably replace with a {Domain}Entity type (that is added to the available supertypes
         # if anything references it here or among existing entities)
@@ -170,26 +176,13 @@ def choose_field_type(
         return "Any", None
 
 
-def enum(
+def options_enum_type(
     field_name: str,
     options: Iterable[str | dict[str, Any]],
-    enum_types: dict[Tuple[str, str], Tuple[str, str]],
+    enum_types: dict[Tuple[str, str], TypeAlias],
 ) -> str:
     "Finds or create the necessary enum in enum_types, and returns its name"
-    options_repr: Iterable[str] = (
-        repr(option["value"]) if isinstance(option, dict) else repr(option)
-        for option in options
-    )
-    type = f"Literal[{", ".join(options_repr)}]"
-    if (field_name, type) in enum_types:
-        return enum_types[(field_name, type)][0]
-    else:
-        enum_type_name = f"Options{field_name.title()}{len(enum_types)}"
-        enum_types[(field_name, type)] = (
-            enum_type_name,
-            f"{enum_type_name}: TypeAlias = {type}",
-        )
-        return enum_type_name
+    return enum_type(field_name, f"Options{field_name.title()}", options, enum_types)
 
 
 def field_is_available_for_entity(

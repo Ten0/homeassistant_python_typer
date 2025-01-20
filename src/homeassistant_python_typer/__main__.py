@@ -3,10 +3,11 @@ import json
 import os
 import sys
 
-from .services import infer_services_superclasses, per_entity_domain_services
-from .states import infer_state_superclass
+from .infer_entities import infer_entities
+from .services import per_entity_domain_services
 from .dataclasses import *
 from .builder import HaptBuilder
+from .helpers import *
 
 
 def main():
@@ -40,71 +41,7 @@ def main():
         per_entity_domain_services=per_entity_domain_services(hm_services)
     )
 
-    for entity in hm_entities:
-        entity_id: str = entity["entity_id"]
-        domain, entity_name = entity_id.split(".", 1)
-        entity_attributes = entity["attributes"]
-
-        superclass = "Entity"
-        match domain:
-            case "light" | "binary_sensor" | "input_boolean" | "switch":
-                superclass = (
-                    "OnOffState" if not generate_as_async else "OnOffStateAsync"
-                )
-            case "input_button":
-                superclass = (
-                    "InputButton" if not generate_as_async else "InputButtonAsync"
-                )
-            case (
-                "climate"
-            ) if "temperature" in entity_attributes and "current_temperature" in entity_attributes:
-                superclass = "Climate" if not generate_as_async else "ClimateAsync"
-            case _:
-                # match can't be expressions in Python :(
-                pass
-
-        superclasses = ", ".join(
-            infer_state_superclass(
-                builder=builder,
-                entity_attributes=entity_attributes,
-                entity_id=entity_id,
-            )
-            + infer_services_superclasses(
-                builder=builder,
-                domain=domain,
-                entity_attributes=entity_attributes,
-            )
-            + [f"hapth.{superclass}"]
-        )
-
-        entity_friendly_name: str | None = (entity.get("attributes", {})).get(
-            "friendly_name", None
-        )
-
-        class_name = f"entity__{domain}__{entity_name}"
-        entity_body = retab(
-            f"""
-            class {class_name}({superclasses}):
-                \"""
-                `{entity_id}`{f": {entity_friendly_name}" if entity_friendly_name else ""}
-                \"""
-                pass""".lstrip(
-                "\n"
-            ),
-            1,
-        )
-        builder.entities.append(Entity(name=entity_name, declaration_body=entity_body))
-
-        entity_type_in_domain = class_name
-        if domain not in builder.domains:
-            builder.domains[domain] = Domain(entities=[], services=[])
-        builder.domains[domain].entities.append(
-            DomainEntity(
-                name=entity_name,
-                type_name=entity_type_in_domain,
-                friendly_name=entity_friendly_name,
-            )
-        )
+    infer_entities(builder, hm_entities, generate_as_async)
 
     services_classes = [
         service_class for _, service_class in builder.classes_per_body.items()
@@ -215,24 +152,6 @@ class HomeAssistantClient:
         return requests.get(
             f"{self.url}/{path}", headers={"Authorization": f"Bearer {self.token}"}
         ).json()
-
-
-def remove_common_indent_levels(text: str) -> str:
-    if text.strip() == "":
-        return ""
-    lines = text.split("\n")
-    common_indent = min(
-        len(line) - len(line.lstrip()) for line in lines if line.strip() != ""
-    )
-    return "\n".join(line[common_indent:].rstrip() for line in lines)
-
-
-def tab(text: str, n: int = 1) -> str:
-    return "\n".join((f"{"    "*n}{line}" for line in text.split("\n")))
-
-
-def retab(text: str, n: int = 1) -> str:
-    return tab(remove_common_indent_levels(text), n)
 
 
 if __name__ == "__main__":

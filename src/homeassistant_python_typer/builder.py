@@ -3,9 +3,6 @@ from typing import Any, Iterable, Tuple
 
 
 class HaptBuilder:
-    per_entity_domain_services: dict[str, list[EntityService]]
-    "Per-domain lookup table of services"
-
     classes_per_body: dict[str, ServiceClass] = {}
     "Key is body of the class, for find-or-create"
 
@@ -17,9 +14,6 @@ class HaptBuilder:
 
     enum_types: dict[Tuple[str, str], TypeAlias] = {}
     "(field name, type) -> (type alias name, type alias declaration)"
-
-    def __init__(self, *, per_entity_domain_services: dict[str, list[EntityService]]):
-        self.per_entity_domain_services = per_entity_domain_services
 
     def enum_type(
         self,

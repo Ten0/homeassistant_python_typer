@@ -1,7 +1,7 @@
 from typing import Any
 
 from .builder import HaptBuilder
-from .services import infer_services_superclasses
+from .services import infer_services_superclasses, per_entity_domain_services
 from .states import infer_state_superclass
 from .helpers import retab
 from .dataclasses import *
@@ -10,8 +10,10 @@ from .dataclasses import *
 def infer_entities(
     builder: HaptBuilder,
     hm_entities: Any,
+    hm_services: Any,
     generate_as_async: bool,
 ) -> None:
+    per_entity_domain_services_ = per_entity_domain_services(hm_services=hm_services)
     for entity in hm_entities:
         entity_id: str = entity["entity_id"]
         domain, entity_name = entity_id.split(".", 1)
@@ -45,6 +47,7 @@ def infer_entities(
                 builder=builder,
                 domain=domain,
                 entity_attributes=entity_attributes,
+                per_entity_domain_services=per_entity_domain_services_,
             )
             + [f"hapth.{superclass}"]
         )

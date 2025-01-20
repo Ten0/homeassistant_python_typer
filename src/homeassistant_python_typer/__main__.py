@@ -4,7 +4,7 @@ import os
 import sys
 
 from .infer_entities import infer_entities
-from .services import per_entity_domain_services
+from .infer_headless_services import infer_headless_services
 from .dataclasses import *
 from .builder import HaptBuilder
 from .helpers import *
@@ -37,11 +37,15 @@ def main():
         with open("services.json", "w") as services_file:
             services_file.write(json.dumps(hm_services, indent=4))
 
-    builder = HaptBuilder(
-        per_entity_domain_services=per_entity_domain_services(hm_services)
-    )
+    builder = HaptBuilder()
 
-    infer_entities(builder, hm_entities, generate_as_async)
+    infer_entities(
+        builder=builder,
+        hm_entities=hm_entities,
+        hm_services=hm_services,
+        generate_as_async=generate_as_async,
+    )
+    infer_headless_services(builder, hm_services)
 
     services_classes = [
         service_class for _, service_class in builder.classes_per_body.items()
@@ -77,9 +81,6 @@ def main():
                 super().__init__(hapt, "{domain_name}")\n\n""".lstrip(
             "\n"
         )
-        for service in domain.services:
-            domains_classes_body += f"""
-                {service.declaration}\n\n"""
         for entity in domain.entities:
             entity_docstring = (
                 ("\n" + repr(entity.friendly_name)) if entity.friendly_name else ""
@@ -90,6 +91,10 @@ def main():
                     3,
                 )
                 + "\n\n"
+            )
+        for service in domain.services:
+            domains_classes_body += (
+                f"""{retab(service.declaration.lstrip("\n"), 3)}\n\n"""
             )
         domains_init_body += f"""
             self.{domain_name} = {domain_name_in_title_case}Domain(hapt)"""

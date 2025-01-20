@@ -39,7 +39,7 @@ class TypeAlias:
 
 
 @dataclass
-class EntityService:
+class Service:
     domain: str
     name: str
     data: Any

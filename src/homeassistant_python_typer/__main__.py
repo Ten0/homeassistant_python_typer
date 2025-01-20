@@ -192,8 +192,8 @@ def main():
 {retab(domains_classes_body)}
 
 
-    # Finally register all domains in a final Entities object
-    class Entities:
+    # Finally register all domains in a final HomeAssistant object
+    class HomeAssistant:
         def __init__(self, ad: ADBase):
             hapt = hapth.HaptSharedState(ad)
             self.hapt = hapt # So that users can call clear_caches() if writing appdaemon handlers directly

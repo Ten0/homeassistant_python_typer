@@ -88,13 +88,13 @@ The generated `hapt.py` file should be placed in your AppDeamon folder. This ena
 
 ```python
 import appdaemon.plugins.hass.hassapi as hass
-from hapt import Entities
+from hapt import HomeAssistant
 
 class SensorLight(hass.Hass):
     def initialize(self):
-        self.entities = Entities(self)
-        self.light = self.entities.light.hallway_light # typechecks & autocompletes
-        self.sensor = self.entities.binary_sensor.hallway_motion_sensor_occupancy
+        self.ha = HomeAssistant(self)
+        self.light = self.ha.light.hallway_light # typechecks & autocompletes
+        self.sensor = self.ha.binary_sensor.hallway_motion_sensor_occupancy
 
         self.sensor.listen_state(self.on_motion_detected, new="on")
 

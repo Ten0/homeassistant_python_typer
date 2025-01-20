@@ -8,7 +8,7 @@ Features:
 
 from datetime import time
 import appdaemon.plugins.hass.hassapi as hass
-from hapt import Entities
+from hapt import HomeAssistant
 
 night_start = time(23)
 night_end = time(8)
@@ -18,10 +18,10 @@ class HallwaySensorLights(hass.Hass):
     timer: str | None
 
     def initialize(self):
-        self.entities = Entities(self)
+        self.ha = HomeAssistant(self)
 
-        self.light = self.entities.light.hallway_lamp
-        self.sensor = self.entities.binary_sensor.hallway_motion_sensor_occupancy
+        self.light = self.ha.light.hallway_lamp
+        self.sensor = self.ha.binary_sensor.hallway_motion_sensor_occupancy
 
         self.timer = None
         # Track that we asked turn off otherwise we may skip turn_on command while it's turning off (because is_on())
@@ -36,12 +36,12 @@ class HallwaySensorLights(hass.Hass):
         self.log("Initialized HallwaySensorLights")
 
     def timer_trigger(self, cb_args: dict[str, object]):
-        self.entities.hapt.clear_caches()  # Necessary with native appdaemon triggers
+        self.ha.hapt.clear_caches()  # Necessary with native appdaemon triggers
         self.timer = None
         self.set_light()
 
     def check_light_trigger(self, cb_args: dict[str, object]):
-        self.entities.hapt.clear_caches()  # Necessary with native appdaemon triggers
+        self.ha.hapt.clear_caches()  # Necessary with native appdaemon triggers
         self.set_light()
 
     def check_sensor(self):

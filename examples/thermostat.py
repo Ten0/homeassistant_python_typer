@@ -12,8 +12,8 @@ Features:
 from datetime import time
 import datetime
 import appdaemon.plugins.hass.hassapi as hass
-from hapt import Entities
-import hapt as entities
+from hapt import HomeAssistant
+import hapt
 from dataclasses import dataclass
 
 NIGHT_START = time(23)
@@ -28,22 +28,22 @@ HEATING_TEMPERATURE_AWAY = 5.0
 
 class ThermostatControl(hass.Hass):
     def initialize(self):
-        self.entities = Entities(self)
+        self.ha = HomeAssistant(self)
 
-        self.thermostat = self.entities.climate.livingroom_thermostat
+        self.thermostat = self.ha.climate.livingroom_thermostat
         self.persons = (
             Person(
                 app=self,
-                phone_device_tracker=self.entities.device_tracker.person1_phone,
-                phone_battery_state=self.entities.sensor.person1_phone_battery_state,
+                phone_device_tracker=self.ha.device_tracker.person1_phone,
+                phone_battery_state=self.ha.sensor.person1_phone_battery_state,
             ),
             Person(
                 app=self,
-                phone_device_tracker=self.entities.device_tracker.person2_phone,
-                phone_battery_state=self.entities.sensor.person2_phone_battery_state,
+                phone_device_tracker=self.ha.device_tracker.person2_phone,
+                phone_battery_state=self.ha.sensor.person2_phone_battery_state,
             ),
         )
-        self.heat_now_switch = self.entities.input_boolean.heat_now
+        self.heat_now_switch = self.ha.input_boolean.heat_now
 
         for person in self.persons:
             person.phone_device_tracker.listen_state(self.check)
@@ -74,7 +74,7 @@ class ThermostatControl(hass.Hass):
 
     def appdaemon_native_trigger(self, cb_args: dict[str, object]):
         "Useful for direct AppDaemon triggers (e.g. run_daily or run_in)"
-        self.entities.hapt.clear_caches()  # Necessary with native appdaemon triggers
+        self.ha.hapt.clear_caches()  # Necessary with native appdaemon triggers
         self.check()
 
     def check(self):
@@ -102,7 +102,7 @@ class ThermostatControl(hass.Hass):
         self.check()
 
     def is_night(self) -> bool:
-        cache = self.entities.hapt.state_cache
+        cache = self.ha.hapt.state_cache
         if "thermostatcontrol__is_night" in cache:
             return cache["thermostatcontrol__is_night"]
         time = self.time()
@@ -111,10 +111,10 @@ class ThermostatControl(hass.Hass):
         return ret
 
     def now(self) -> datetime.datetime:
-        if "thermostatcontrol__now" in self.entities.hapt.state_cache:
-            return self.entities.hapt.state_cache["thermostatcontrol__now"]
+        if "thermostatcontrol__now" in self.ha.hapt.state_cache:
+            return self.ha.hapt.state_cache["thermostatcontrol__now"]
         now = self.datetime(aware=True)
-        self.entities.hapt.state_cache["thermostatcontrol__now"] = now
+        self.ha.hapt.state_cache["thermostatcontrol__now"] = now
         return now
 
 
@@ -123,12 +123,12 @@ class Person:
     app: ThermostatControl
 
     phone_device_tracker: (
-        entities.entity__device_tracker__person1_phone
-        | entities.entity__device_tracker__person2_phone
+        hapt.entity__device_tracker__person1_phone
+        | hapt.entity__device_tracker__person2_phone
     )
     phone_battery_state: (
-        entities.entity__sensor__person1_phone_battery_state
-        | entities.entity__sensor__person2_phone_battery_state
+        hapt.entity__sensor__person1_phone_battery_state
+        | hapt.entity__sensor__person2_phone_battery_state
     )
 
     is_plugged_since_night: bool = False

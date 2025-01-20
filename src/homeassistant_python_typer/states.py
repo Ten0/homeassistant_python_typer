@@ -1,15 +1,15 @@
 from typing import Any, Tuple
 from .dataclasses import *
+from .builder import HaptBuilder
 
 
 def infer_state_superclass(
+    builder: HaptBuilder,
     entity_attributes: dict[str, Any],
-    classes_per_body: dict[str, ServiceClass],
-    enum_types: dict[Tuple[str, str], TypeAlias],
     entity_id: str,
 ) -> list[str]:
     extra_superclasses: list[str] = []
-    return_type, cast, doc = state_type(entity_attributes, enum_types, entity_id)
+    return_type, cast, doc = state_type(entity_attributes, builder, entity_id)
 
     if return_type is not None:
         superclass_body = f"""
@@ -26,16 +26,16 @@ def infer_state_superclass(
                         The state of the entity.{doc}
                     \"""
                     return await {'' if cast is None else f'{cast}('}super().get_state_repeatable_read(){'' if cast is None else ')'}"""
-        if superclass_body in classes_per_body:
-            extra_superclasses.append(classes_per_body[superclass_body].name)
+        if superclass_body in builder.classes_per_body:
+            extra_superclasses.append(builder.classes_per_body[superclass_body].name)
         else:
-            superclass_name = f"state__{len(classes_per_body)}"
+            superclass_name = f"state__{len(builder.classes_per_body)}"
             superclass_full_body = (
                 f"""
             class {superclass_name}(hapth.Entity):"""
                 + superclass_body
             )
-            classes_per_body[superclass_body] = ServiceClass(
+            builder.classes_per_body[superclass_body] = ServiceClass(
                 name=superclass_name, body=superclass_full_body
             )
             extra_superclasses.append(superclass_name)
@@ -45,7 +45,7 @@ def infer_state_superclass(
 
 def state_type(
     entity_attributes: dict[str, Any],
-    enum_types: dict[Tuple[str, str], TypeAlias],
+    builder: HaptBuilder,
     entity_id: str,
 ) -> Tuple[str | None, str | None, str]:
     return_type: str | None = None
@@ -59,7 +59,7 @@ def state_type(
                 # I'm not 100% confident that this can't also return "unknown" (or "unavailable" for e.g. lights),
                 # might need to add that to the list (in which case that would probably be None)
                 options = entity_attributes["options"]
-                return_type = enum_type("state", "State", options, enum_types)
+                return_type = builder.enum_type("state", "State", options)
                 doc = f"""
                         Possible states:
                         - {'\n                        - '.join((f"`{option}`" for option in options))}"""

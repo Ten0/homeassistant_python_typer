@@ -292,7 +292,7 @@ class Domain:
     if not TYPE_CHECKING:
 
         def __getattr__(self, entity_name: str) -> object:
-            # We lazily initialize fields as they get used, so that initializing `Entities`
+            # We lazily initialize fields as they get used, so that initializing `HomeAssistant`
             # doesn't allocate unnecessary resources: each app is probably going to sparsely use
             # the entities.
             # We only enter __getattr__ if the attribute is not already set.

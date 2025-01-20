@@ -1,4 +1,3 @@
-from typing import Tuple
 import requests
 import json
 import os
@@ -7,6 +6,7 @@ import sys
 from .services import infer_services_superclasses, per_entity_domain_services
 from .states import infer_state_superclass
 from .dataclasses import *
+from .builder import HaptBuilder
 
 
 def main():
@@ -36,20 +36,9 @@ def main():
         with open("services.json", "w") as services_file:
             services_file.write(json.dumps(hm_services, indent=4))
 
-    # Per-domain lookup table of services
-    hm_services_dict = per_entity_domain_services(hm_services)
-
-    # body of the class, class name
-    classes_per_body: dict[str, ServiceClass] = {}
-
-    # entity id, body
-    entities: list[Entity] = []
-
-    # domain name, [(entity name, entity type in domain, entity doc)]
-    domains: dict[str, Domain] = {}
-
-    # (field name, type) -> (type alias name, type alias declaration)
-    enum_types: dict[Tuple[str, str], TypeAlias] = {}
+    builder = HaptBuilder(
+        per_entity_domain_services=per_entity_domain_services(hm_services)
+    )
 
     for entity in hm_entities:
         entity_id: str = entity["entity_id"]
@@ -76,17 +65,14 @@ def main():
 
         superclasses = ", ".join(
             infer_state_superclass(
+                builder=builder,
                 entity_attributes=entity_attributes,
-                classes_per_body=classes_per_body,
-                enum_types=enum_types,
                 entity_id=entity_id,
             )
             + infer_services_superclasses(
+                builder=builder,
                 domain=domain,
                 entity_attributes=entity_attributes,
-                classes_per_body=classes_per_body,
-                hm_services=hm_services_dict,
-                enum_types=enum_types,
             )
             + [f"hapth.{superclass}"]
         )
@@ -107,12 +93,12 @@ def main():
             ),
             1,
         )
-        entities.append(Entity(name=entity_name, declaration_body=entity_body))
+        builder.entities.append(Entity(name=entity_name, declaration_body=entity_body))
 
         entity_type_in_domain = class_name
-        if domain not in domains:
-            domains[domain] = Domain(entities=[])
-        domains[domain].entities.append(
+        if domain not in builder.domains:
+            builder.domains[domain] = Domain(entities=[], services=[])
+        builder.domains[domain].entities.append(
             DomainEntity(
                 name=entity_name,
                 type_name=entity_type_in_domain,
@@ -120,25 +106,27 @@ def main():
             )
         )
 
-    services_classes = [service_class for _, service_class in classes_per_body.items()]
+    services_classes = [
+        service_class for _, service_class in builder.classes_per_body.items()
+    ]
     services_classes.sort(key=lambda s: s.name)  # sort by name for consistency
-    entities.sort(key=lambda e: e.name)  # sort by name for consistency
+    builder.entities.sort(key=lambda e: e.name)  # sort by name for consistency
     domains_classes = [
         (domain_name, domain_entities)
-        for domain_name, domain_entities in domains.items()
+        for domain_name, domain_entities in builder.domains.items()
     ]
     domains_classes.sort(key=lambda x: x[0])  # sort by name for consistency
     for _, domain in domains_classes:
         domain.entities.sort(key=lambda e: e.name)
 
     enum_declarations_body = "\n".join(
-        (type_alias.declaration for type_alias in enum_types.values())
+        (type_alias.declaration for type_alias in builder.enum_types.values())
     )
     services_classes_body = "\n\n".join(
         (service_class.body for service_class in services_classes)
     ).lstrip("\n")
     entities_classes_body = "\n\n".join(
-        (entity.declaration_body for entity in entities)
+        (entity.declaration_body for entity in builder.entities)
     )
     domains_classes_body = ""
     domains_init_body = ""
@@ -152,6 +140,9 @@ def main():
                 super().__init__(hapt, "{domain_name}")\n\n""".lstrip(
             "\n"
         )
+        for service in domain.services:
+            domains_classes_body += f"""
+                {service.declaration}\n\n"""
         for entity in domain.entities:
             entity_docstring = (
                 ("\n" + repr(entity.friendly_name)) if entity.friendly_name else ""

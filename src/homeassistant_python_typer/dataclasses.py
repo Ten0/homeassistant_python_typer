@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Iterable, Tuple
+from typing import Any
 
 
 @dataclass
@@ -22,7 +22,13 @@ class DomainEntity:
 
 
 @dataclass
+class ServiceEndpoint:
+    declaration: str
+
+
+@dataclass
 class Domain:
+    services: list[ServiceEndpoint]
     entities: list[DomainEntity]
 
 
@@ -32,24 +38,8 @@ class TypeAlias:
     declaration: str
 
 
-def enum_type(
-    field_name: str,
-    type_name_prefix: str,
-    options: Iterable[str | dict[str, Any]],
-    enum_types: dict[Tuple[str, str], TypeAlias],
-):
-    "Finds or create the necessary enum in enum_types, and returns its name"
-    options_repr: Iterable[str] = (
-        repr(option["value"]) if isinstance(option, dict) else repr(option)
-        for option in options
-    )
-    type = f"Literal[{", ".join(options_repr)}]"
-    if (field_name, type) in enum_types:
-        return enum_types[(field_name, type)].name
-    else:
-        enum_type_name = f"{type_name_prefix}{len(enum_types)}"
-        enum_types[(field_name, type)] = TypeAlias(
-            name=enum_type_name,
-            declaration=f"{enum_type_name}: TypeAlias = {type}",
-        )
-        return enum_type_name
+@dataclass
+class EntityService:
+    domain: str
+    name: str
+    data: Any

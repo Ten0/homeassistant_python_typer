@@ -6,7 +6,7 @@ Bring a real software development experience to your home automation.
 
 # What
 
-Run this script to obtain type definitions for all devices available in Home Assistant, which can then be exported to your [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) apps folder for use in any AppDaemon app.
+Run this script to obtain type definitions for all entities available in *your* Home Assistant, which can then be exported to your [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) apps folder for use in any AppDaemon app.
 
 ![VSCode screenshot of how it highlights errors](docs/typing_demo.png)
 
@@ -63,7 +63,7 @@ In the "automate things with a computer" world, besides very specialized tasks, 
 
 That is in great part because the software industry is so big that it has developed over the years amazing tools to make that development experience absolutely seamless!
 
-Side note: If you don't already use it, learn `git` by using a graphical git client, e.g. VCode + Git Graph extension, or SmartGit (or both), to understand the concepts well, and store your code on there. It's easier than you think, and that way every version of your code is saved. Never fear to break stuff!
+Side note: If you don't already use it, learn `git` by using a graphical git client, e.g. VSCode + Git Graph extension, or SmartGit (or both), to understand the concepts well, and store your code on there. It's easier than you think, and that way every version of your code is saved. Never fear to break stuff!
 </details>
 
 Now [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) was built to address this problem: to allow expressing automations in an actual programming language (Python) rather than Yaml+Jinja, when they get complex (or when you find writing lines of code simpler than clicking left and right in dropdowns - after all, variables are a useful concept...)
@@ -81,7 +81,7 @@ We're solving AppDaemon's pain point. We introduce a fully typed API, usable wit
 
 We provide a script which when run on a HomeAssistant instance will generate type definitions for all entities connected to the platform.
 ```console
-homeassistant_python_typer /path/to/hapt.py
+python -m homeassistant_python_typer /path/to/hapt.py
 ```
 
 The generated `hapt.py` file should be placed in your AppDeamon folder. This enables you to use your entities like so:
@@ -143,6 +143,8 @@ This is done via two environment variables:
 
 You may make them accessible without friction as you `cd` into the relevant project folder by using [`direnv`](https://direnv.net/).
 
+Note that this project already has a `.envrc` configured that ends up sourcing the gitignored file `.secrets`, so you may put the definition of these environment variables there.
+
 ### Python configuration & venv
 
 Install python, [create a virtual environment and install appdaemon in there](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/), then [select the venv in `VSCode`](https://code.visualstudio.com/docs/python/environments).
@@ -163,11 +165,13 @@ This will probably get cleaned up eventually in favor of letting the script do t
 
 ## Repeatable read
 
-This projects has a repeatable-read layer on the state.
-What this means is, when you read the state of the same object twice in the same event handling, you are guaranteed to get the same result, avoiding cases where an entity's state would change in the middle of handling an event, which could otherwise potentially lead to insidious race bugs. In additions it avoids calling the appdaemon async machinery if reading the state of the same entity multiple times.
-This allows writing code such as `sensor.is_on()` multiple times in the same event handling without fear of dramatic consequences.
+The types provided by this project have a repeatable-read layer on the `state()`.
 
-In practice this means you can consider each event to be handled with a "snapshot" view of entities states (which although not completely correct because of possible reordering across entities is the easiest way to see it).
+What this means is, when you read the state of the same object twice in the same event handling, you are guaranteed to get the same result, avoiding cases where an entity's state would change in the middle of handling an event, which could otherwise potentially lead to insidious race bugs.
+In addition, this approach avoids calling the appdaemon async machinery if reading the state of the same entity multiple times.
+This allows writing code such as `sensor.is_on()` multiple times in the same event handling without fear of weird bugs or significantly worse perf, so you may write the code in just the way that feels the most readable.
+
+In practice this means you should consider each event to be handled with a "snapshot" view of entities states (which although not completely correct because of possible reordering across entities is the easiest way to see it).
 
 The downside of this is that for correctness, it's required to manually clear the state cache (`self.ha.hapt.clear_caches()`) **if using native appdaemon callbacks**. [Example](https://github.com/Ten0/homeassistant_python_typer/blob/be354da32c4a7c6f0911058943fc40c6fb860cd4/examples/thermostat.py#L75-L78).
 
@@ -181,13 +185,13 @@ This project is in its early stages, and this README is probably not as detailed
 
 If you have even the simplest question, or ideas, please open a [Discussion](https://github.com/Ten0/homeassistant_python_typer/discussions/categories/q-a) so we can improve!
 
-If you find bugs (missing functions, incorrect types, Any types where useful to have more precise types, crashes...) please open an issue.
+If you find bugs (missing functions, incorrect types, `Any` types where useful to have more precise types, crashes...) please open an issue.
 
 # Diverse how-to s
 
 ## Debugger
 
-This documentation really belongs in AppDaemon's doc but it isn't there so...
+This documentation really belongs in AppDaemon's doc but I haven't found it there so...
 
 With VSCode's debugger, and appdaemon installed in a python virtual env with pip and selected as Python interpreter in VSCode (which is necessary for typing to work in your IDE anyway):
 
@@ -236,12 +240,12 @@ Future ideas for this project:
    c. Do b. and advise library authors to use [Protocols](https://peps.python.org/pep-0544/). This may be better than a. for the reason that this allows locally extending the subclasses without having to change `hapt.py`. Downside: unless we provide a database of protocols (like a.) this will be very heavy for implementors. In addition because I don't know of a way to define a type alias for a type annotation that reads: "any type that implements this non-protocol class BUT also implements this protocol class" (trying to do this: `class RgbLight(hapth.OnOffState, Protocol)` gives `Protocol class "RgbLight" cannot derive from non-Protocol class "OnOffState"`) this probably means we need to dupplicate all of our classes as protocol classes to ease such declarations, which is both bothersome and worse typing.
     - Idea: we could automatically generate protocol classes for each conditional argument of a service. This makes defining protocols for arguments combinations reasonably doable.
 
-   d. Recommend to developers to put placeholders for actions, where users would define an app that inherits the abstract app and overrides the appropriate methods with typed plugs to their own HomeAssistant entities. This may or may not be practically better than the Protocols approach.
+   d. Recommend to library authors to put placeholders methods for actions (e.g. `turn_on_light` for a sensor lights app), where users would define an app that inherits the abstract app and overrides the appropriate methods with typed plugs to their own HomeAssistant entities. This may or may not be practically better than the Protocols approach.
 
 
 3. Make it possible to easily bump "automation libraries" with typechecking (dependencies lockfiles and dependabot PRs, that can optionally auto-merge if typechecking passes?)
 
-4. Improve typing on entities states and attributes (currently only light: `on`/`off` is hardcoded)
+4. Improve typing on entities states and attributes ([currently supported](https://github.com/Ten0/homeassistant_python_typer/blob/a040adfc83ff17df899cfda6735eaa51f89d99d7/src/homeassistant_python_typer/states.py#L46): light/switch/... as `on`/`off`, counters/sensors/... as `int`/`int | float`, enums as string literals)
 
 # Inspirations
 

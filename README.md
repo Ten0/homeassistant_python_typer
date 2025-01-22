@@ -236,6 +236,8 @@ Future ideas for this project:
    c. Do b. and advise library authors to use [Protocols](https://peps.python.org/pep-0544/). This may be better than a. for the reason that this allows locally extending the subclasses without having to change `hapt.py`. Downside: unless we provide a database of protocols (like a.) this will be very heavy for implementors. In addition because I don't know of a way to define a type alias for a type annotation that reads: "any type that implements this non-protocol class BUT also implements this protocol class" (trying to do this: `class RgbLight(hapth.OnOffState, Protocol)` gives `Protocol class "RgbLight" cannot derive from non-Protocol class "OnOffState"`) this probably means we need to dupplicate all of our classes as protocol classes to ease such declarations, which is both bothersome and worse typing.
     - Idea: we could automatically generate protocol classes for each conditional argument of a service. This makes defining protocols for arguments combinations reasonably doable.
 
+   d. Recommend to developers to put placeholders for actions, where users would define an app that inherits the abstract app and overrides the appropriate methods with typed plugs to their own HomeAssistant entities. This may or may not be practically better than the Protocols approach.
+
 
 3. Make it possible to easily bump "automation libraries" with typechecking (dependencies lockfiles and dependabot PRs, that can optionally auto-merge if typechecking passes?)
 

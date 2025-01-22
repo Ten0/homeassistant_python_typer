@@ -83,13 +83,13 @@ We're solving AppDaemon's pain point. We introduce a fully typed API, usable wit
 
 We provide a script which when run on a HomeAssistant instance will generate type definitions for all entities connected to the platform.
 
-Run the following commands to download the project and generate your types (please appropriately fill your HomeAssistant URL and [token](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten)):
+Run the following commands to download the project and generate your types (please appropriately fill your HomeAssistant URL and [token](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten), and the path to export `hapt.py` at):
 ```console
 git clone https://github.com/Ten0/homeassistant_python_typer.git
 cd homeassistant_python_typer/src
 export HOMEASSISTANT_URL="URL of your home assistant instance"
 export HOMEASSISTANT_TOKEN="A long-lived access token to your HomeAssistant instance"
-python -m homeassistant_python_typer /path/to/hapt.py
+python3 -m homeassistant_python_typer /path/to/hapt.py
 ```
 
 The generated `hapt.py` file should be placed in your AppDeamon folder. This enables you to use your entities like so:

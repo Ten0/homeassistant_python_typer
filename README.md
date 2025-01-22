@@ -4,17 +4,17 @@ Full-fledged typing for your home automation applications. Never see your automa
 
 Bring a real software development experience to your home automation.
 
-# What
+# ⏱️ What
 
-Run this script to obtain type definitions for all entities available in *your* Home Assistant, which can then be exported to your [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) apps folder for use in any AppDaemon app.
+Run this script to obtain a typed Python interface for all entities available in *your* Home Assistant, which can then be exported to your [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) apps folder for use in any AppDaemon app.
 
 ![VSCode screenshot of how it highlights errors](docs/typing_demo.png)
 
 See [How it works](#how-it-works) section for how to setup.
 
-# Why
+# 💡 Why
 
-## Nocode?
+## 🖱️ Nocode?
 
 HomeAssistant is a largely no-code platform. This works well for very small automations. However as soon as there are many automations and they are more or less complex, they are a pain to maintain, and/or end up extensively using [Templating](https://www.home-assistant.io/docs/configuration/templating/).
 
@@ -24,7 +24,7 @@ And I'm at the regret to inform you that... this is not no-code. This is just co
 
 Also if you make the slightest mistake, nothing will catch it until it fails to run the particular automation.
 
-## Code?
+## 👨‍💻 Code?
 
 <details>
 <summary>Why code is better than no-code</summary>
@@ -73,14 +73,20 @@ Instead you have to enter entity IDs as strings, and hope that whatever function
 
 Again, if you make mistakes, if you lose devices on the network, or refer non-existing properties, nothing will catch it until you try to run them.
 
-## So what?
+## 💡 So what?
 
 We're solving AppDaemon's pain point. We introduce a fully typed API, usable within your favorite Python code editor with fully-fledged auto-completion and typing, that contains all your entities, and all functions you can call on available entities.
 
-# How it works
+# 🚀 How it works
 
 We provide a script which when run on a HomeAssistant instance will generate type definitions for all entities connected to the platform.
+
+Run the following commands to download the project and generate your types (please appropriately fill your HomeAssistant URL and [token](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten)):
 ```console
+git clone https://github.com/Ten0/homeassistant_python_typer.git
+cd homeassistant_python_typer/src
+export HOMEASSISTANT_URL="URL of your home assistant instance"
+export HOMEASSISTANT_TOKEN="A long-lived access token to your HomeAssistant instance"
 python -m homeassistant_python_typer /path/to/hapt.py
 ```
 
@@ -114,14 +120,14 @@ class SensorLight(hass.Hass):
         )
 ```
 
-where:
+where with an appropriately configured editor (e.g. [VSCode](https://code.visualstudio.com/) with [Python extension](https://code.visualstudio.com/docs/languages/python)):
 - If you were to typo the name of the light, you'd get a nice big red error message stating that this light doesn't exist in your Home Assistant
 - If your light were to not support RGB because it's a light where only the temperature and brightness can be configured, you'd get a nice big red error message stating that `rgb_color` is not available for `hallway_light`'s `turn_on`.
 - Wherever you would get a dropdown in HomeAssistant's no-code editor, you'll get auto-completion and type checking for all possible input values for the parameter.
 - All functions and function parameters are documented (with the same documentation as in the no-code UI)
 - Every function available in Home Assistant is available (because they are introspected by the same API as HomeAssistant uses for its no-code interface)
 
-## Additional setup
+## 🔧 Additional setup
 
 ### AppDaemon
 
@@ -163,7 +169,7 @@ For now it's also required to copy the `homeassistant_python_typer_helpers.py` f
 
 This will probably get cleaned up eventually in favor of letting the script do that copy for you as well (you'd specify an output directory), or by having the script write all of that into `hapt.py`, or having it as a `pip` dependency.
 
-## Repeatable read
+## 🛡️ Repeatable read
 
 The types provided by this project have a repeatable-read layer on the `state()`.
 
@@ -171,7 +177,7 @@ What this means is, when you read the state of the same object twice in the same
 
 In practice this means you should consider each event to be handled with a "snapshot" view of entities states (which although not completely correct because of possible reordering across entities is the easiest way to see it).
 
-## Why it's useful
+### Why it's useful
 
 This is useful for example if you consider [the `sensor_lights` example](https://github.com/Ten0/homeassistant_python_typer/blob/40e518daaced8342c46dc5dbdd0c4d257910069e/examples/sensor_lights.py#L47-L56):
 
@@ -188,6 +194,7 @@ In this example, we turn on when the sensor is on (there is presence), set a tim
 
     def set_light(self):
         should_be_on = self.sensor.is_on() or self.timer is not None
+        # ...
 ```
 
 Without repeatable read guarantees, there would be this insidious race bug:
@@ -196,7 +203,7 @@ Without repeatable read guarantees, there would be this insidious race bug:
 
 Such insidious bugs are prevented by this repeatable read feature, provided in the spirit of further improving home automation reliability: `sensor.is_on()` cannot change value during event handling, so such logic will *always* work without need for special attention.
 
-## What to be careful about
+### What to be careful about
 
 The downside of this is that for correctness, it's required to manually clear the state cache (`self.ha.hapt.clear_caches()`) **if using native appdaemon callbacks**. [Example](https://github.com/Ten0/homeassistant_python_typer/blob/be354da32c4a7c6f0911058943fc40c6fb860cd4/examples/thermostat.py#L75-L78).
 
@@ -206,17 +213,17 @@ Typed listen_state APIs provided by `homeassistant_python_typer` already clear t
 
 Despite this downside, it is estimated to be a better compromise than not having this feature because assuming that you ultimately want your automations to always work, it easier to not forget this than to consider all potential subtle races such as the one described above.
 
-Ultimately this project will probably either find a way to identify event handling jumps automatically to clear caches automatically, or provide overlays for more appdaemon APIs that would also perform implicit cache clearing.
+Ultimately this project will probably either find a way to identify event handling jumps automatically to clear caches automatically, or provide overlays for more appdaemon APIs that would also perform implicit cache clearing where appropriate.
 
-## Community
+## 💬 Community & Feedback
 
 This project is in its early stages, and this README is probably not as detailed as it could be, so there may be some rough edges, (esp. if you're beginning with programming with code).
 
 If you have even the simplest question, or ideas, please open a [Discussion](https://github.com/Ten0/homeassistant_python_typer/discussions/categories/q-a) so we can improve!
 
-If you find bugs (missing functions, incorrect types, `Any` types where useful to have more precise types, crashes...) please open an issue.
+If you find bugs (missing functions, incorrect types, `Any` types where useful to have more precise types, crashes...) please open an [issue](https://github.com/Ten0/homeassistant_python_typer/issues).
 
-# Diverse how-to s
+# 📚 Diverse how-to s
 
 ## Debugger
 
@@ -246,7 +253,7 @@ With VSCode's debugger, and appdaemon installed in a python virtual env with pip
 
 Then follow [the regular VSCode + Python debugger doc](https://code.visualstudio.com/docs/python/debugging).
 
-# Vision
+# 🔭 Vision
 
 Future ideas for this project:
 1. Make it easy to link GitHub & HomeAssistant via an integration that can:
@@ -276,6 +283,6 @@ Future ideas for this project:
 
 4. Improve typing on entities states and attributes ([currently supported](https://github.com/Ten0/homeassistant_python_typer/blob/a040adfc83ff17df899cfda6735eaa51f89d99d7/src/homeassistant_python_typer/states.py#L46): light/switch/... as `on`/`off`, counters/sensors/... as `int`/`int | float`, enums as string literals)
 
-# Inspirations
+# 🧘 Inspirations
 
 I (Ten0) am a core team member of [Diesel](https://diesel.rs/), the #1 library of the Rust ecosystem for doing precisely this (bringing native typechecking capabilities from introspection) for the general case of SQL databases.

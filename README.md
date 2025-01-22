@@ -1,5 +1,7 @@
 # HomeAssistant Python typer
 
+<img src="./logo.png" align="right" alt="Logo" width="174" height="149">
+
 Full-fledged typing for your home automation applications. Never see your automations break again.
 
 Bring a real software development experience to your home automation.

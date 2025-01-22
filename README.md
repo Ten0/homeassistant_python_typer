@@ -161,6 +161,20 @@ For now it's also required to copy the `homeassistant_python_typer_helpers.py` f
 
 This will probably get cleaned up eventually in favor of letting the script do that copy for you as well (you'd specify an output directory), or by having the script write all of that into `hapt.py`, or having it as a `pip` dependency.
 
+## Repeatable read
+
+This projects has a repeatable-read layer on the state.
+What this means is, when you read the state of the same object twice in the same event handling, you are guaranteed to get the same result, avoiding cases where an entity's state would change in the middle of handling an event, which could otherwise potentially lead to insidious race bugs. In additions it avoids calling the appdaemon async machinery if reading the state of the same entity multiple times.
+This allows writing code such as `sensor.is_on()` multiple times in the same event handling without fear of dramatic consequences.
+
+In practice this means you can consider each event to be handled with a "snapshot" view of entities states (which although not completely correct because of possible reordering across entities is the easiest way to see it).
+
+The downside of this is that for correctness, it's required to manually clear the state cache (`self.ha.hapt.clear_caches()`) **if using native appdaemon callbacks**. [Example](https://github.com/Ten0/homeassistant_python_typer/blob/be354da32c4a7c6f0911058943fc40c6fb860cd4/examples/thermostat.py#L75-L78).
+
+This is important and error-prone because if forgotten, one may be reading the previous entities states when handling a new event.
+
+Typed listen_state APIs provided by `homeassistant_python_typer` already clear the caches as they receive an event, so they don't have this quirk.
+
 ## Community
 
 This project is in its early stages, and this README is probably not as detailed as it could be, so there may be some rough edges, (esp. if you're beginning with programming with code).

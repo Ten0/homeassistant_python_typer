@@ -47,7 +47,8 @@ class HallwaySensorLights(hass.Hass):
     def check_sensor(self):
         if self.sensor.is_on() or self.light.is_off():
             self.clear_timer()
-        elif self.light.is_on():
+        else:
+            # light is on but sensor is off
             self.set_timer()
         self.set_light()
 

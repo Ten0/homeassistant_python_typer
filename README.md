@@ -12,7 +12,7 @@ Run this script to obtain a typed Python interface for all entities available in
 
 ![VSCode screenshot of how it highlights errors](docs/typing_demo.png)
 
-See [How it works](#how-it-works) section for how to setup.
+See [How it works](#-how-it-works) section for how to setup.
 
 # 💡 Why
 

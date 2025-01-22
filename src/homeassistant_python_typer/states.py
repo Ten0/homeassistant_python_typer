@@ -51,7 +51,19 @@ def state_type(
     return_type: str | None = None
     cast = None
     doc: str = ""
-    if "device_class" in entity_attributes:
+    if entity_id.startswith("counter."):
+        if (
+            "step" in entity_attributes
+            and "initial" in entity_attributes
+            and isinstance(entity_attributes["step"], int)
+            and isinstance(entity_attributes["initial"], int)
+        ):
+            return_type = "int"
+            cast = "int"
+        else:
+            return_type = "int | float"
+            cast = "hapth.int_or_float"
+    elif "device_class" in entity_attributes:
         device_class = entity_attributes["device_class"]
         match device_class:
             # https://www.home-assistant.io/integrations/homeassistant/#device-class (click each platform)

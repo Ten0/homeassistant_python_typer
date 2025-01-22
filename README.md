@@ -168,16 +168,45 @@ This will probably get cleaned up eventually in favor of letting the script do t
 The types provided by this project have a repeatable-read layer on the `state()`.
 
 What this means is, when you read the state of the same object twice in the same event handling, you are guaranteed to get the same result, avoiding cases where an entity's state would change in the middle of handling an event, which could otherwise potentially lead to insidious race bugs.
-In addition, this approach avoids calling the appdaemon async machinery if reading the state of the same entity multiple times.
-This allows writing code such as `sensor.is_on()` multiple times in the same event handling without fear of weird bugs or significantly worse perf, so you may write the code in just the way that feels the most readable.
 
 In practice this means you should consider each event to be handled with a "snapshot" view of entities states (which although not completely correct because of possible reordering across entities is the easiest way to see it).
 
+## Why it's useful
+
+This is useful for example if you consider [the `sensor_lights` example](https://github.com/Ten0/homeassistant_python_typer/blob/40e518daaced8342c46dc5dbdd0c4d257910069e/examples/sensor_lights.py#L47-L56):
+
+In this example, we turn on when the sensor is on (there is presence), set a timer when the sensor is off (no presence) but light is on, and turn off when there is no presence nor timer set.
+
+```python
+    def check_sensor(self):
+        if self.sensor.is_on() or self.light.is_off():
+            self.clear_timer()
+        else:
+            # light is on but sensor is off
+            self.set_timer()
+        self.set_light()
+
+    def set_light(self):
+        should_be_on = self.sensor.is_on() or self.timer is not None
+```
+
+Without repeatable read guarantees, there would be this insidious race bug:
+- When checking sensor in `check_sensor` we may clear the timer because someone is under the sensor right now
+- However when checking sensor again in `set_light`, just after clearing the timer, it might have just changed to "nobody is under the sensor" in the time it took for us to clear the timer, so we instantly reach the state where `not sensor.is_on()`, and no timer, so we instantly turn off, bypassing the intended timer!
+
+Such insidious bugs are prevented by this repeatable read feature, provided in the spirit of further improving home automation reliability: `sensor.is_on()` cannot change value during event handling, so such logic will *always* work without need for special attention.
+
+## What to be careful about
+
 The downside of this is that for correctness, it's required to manually clear the state cache (`self.ha.hapt.clear_caches()`) **if using native appdaemon callbacks**. [Example](https://github.com/Ten0/homeassistant_python_typer/blob/be354da32c4a7c6f0911058943fc40c6fb860cd4/examples/thermostat.py#L75-L78).
 
-This is important and error-prone because if forgotten, one may be reading the previous entities states when handling a new event.
+This is important because if forgotten, one may be reading the previous entities states when handling a new event.
 
 Typed listen_state APIs provided by `homeassistant_python_typer` already clear the caches as they receive an event, so they don't have this quirk.
+
+Despite this downside, it is estimated to be a better compromise than not having this feature because assuming that you ultimately want your automations to always work, it easier to not forget this than to consider all potential subtle races such as the one described above.
+
+Ultimately this project will probably either find a way to identify event handling jumps automatically to clear caches automatically, or provide overlays for more appdaemon APIs that would also perform implicit cache clearing.
 
 ## Community
 

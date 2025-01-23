@@ -8,7 +8,7 @@ Bring a real software development experience to your home automation.
 
 # ⏱️ What
 
-Run this script to obtain a typed Python interface for all entities available in *your* Home Assistant, which can then be exported to your [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) apps folder for use in any AppDaemon app.
+Run this script to obtain a typed Python interface for all entities available in *your* Home Assistant, which can then be exported to your [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) apps folder to enable writing your home automations in nicely typed Python.
 
 ![VSCode screenshot of how it highlights errors](docs/typing_demo.png)
 
@@ -20,9 +20,9 @@ See [How it works](#-how-it-works) section for how to setup.
 
 HomeAssistant is a largely no-code platform. This works well for very small automations. However as soon as there are many automations and they are more or less complex, they are a pain to maintain, and/or end up extensively using [Templating](https://www.home-assistant.io/docs/configuration/templating/).
 
-e.g. https://github.com/panhans/HomeAssistant/blob/main/blueprints/automation/panhans/advanced_heating_control.yaml
+e.g. [Advanced Heating Control](https://github.com/panhans/HomeAssistant/blob/04808964b7ba47c6ede42a90721c34e15a9eb820/blueprints/automation/panhans/advanced_heating_control.yaml#L1591-L3232)
 
-And I'm at the regret to inform you that... this is not no-code. This is just code. And a terribly painful way to write it, because yaml+jinja is actually not a programming language.
+And I regret to inform you that... this is not no-code. This is just code. And a terribly painful way to write it, because yaml+jinja is actually not a programming language.
 
 Also if you make the slightest mistake, nothing will catch it until it fails to run the particular automation.
 

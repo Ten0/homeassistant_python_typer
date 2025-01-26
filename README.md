@@ -165,6 +165,12 @@ Suggested parameters are available in this repository's `.vscode/settings.json`.
 
 It is recommended to use the same parameters when working on your AppDaemon Apps.
 
+Probably also add:
+```json
+{ "python.analysis.diagnosticMode": "workspace" }
+```
+to these settings so that it checks all files and not only those you currently have open.
+
 ### Also copy the library associated with the codegen
 
 For now it's also required to copy the `homeassistant_python_typer_helpers.py` file from this repository to your app folder as well.

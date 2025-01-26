@@ -1,4 +1,4 @@
-# HomeAssistant Python typer
+# Home Assistant Python typer
 
 <img src="./logo.png" align="right" alt="Logo" width="174" height="149">
 
@@ -83,7 +83,7 @@ We're solving AppDaemon's pain point. We introduce a fully typed API, usable wit
 
 We provide a script which when run on a HomeAssistant instance will generate type definitions for all entities connected to the platform.
 
-Run the following commands to download the project and generate your types (please appropriately fill your HomeAssistant URL and [token](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten), and the path to export `hapt.py` at):
+Run the following commands to download the project and generate your types (please [appropriately fill](#let-the-homeassistant_python_typer-script-know-where-your-homeassistant-instance-is) your HomeAssistant URL and [token](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten), and the path to export `hapt.py` at):
 ```console
 git clone https://github.com/Ten0/homeassistant_python_typer.git
 cd homeassistant_python_typer/src
@@ -153,11 +153,24 @@ You may make them accessible without friction as you `cd` into the relevant proj
 
 Note that this project already has a `.envrc` configured that ends up sourcing the gitignored file `.secrets`, so you may put the definition of these environment variables there.
 
-### Python configuration & venv
+### Editor
+
+We provide documentation here for VSCode but of course you may configure other editors that have good support for Python.
+
+You may use VSCode either:
+1. Directly on your own computer ([Download](https://code.visualstudio.com/))
+   - Reactive and flexible editing
+   - Requires to setup file transfer to send your code to your Home Assistant instance
+   - It is highly recommended to use `git` for such file transfer. (Github private repos are free.)
+2. Via [the VSCode addon](https://community.home-assistant.io/t/home-assistant-community-add-on-visual-studio-code/107863) on Home Assistant
+   - Simpler setup because no file transfer is necessary
+   - I would still recommended to use `git` to save versions of your code (learn it by using a graphical git client such as VSCode + Git Graph extension), but you could also choose to rely only on Home Assistant backups.
+
+#### Python configuration & venv
 
 Install python, [create a virtual environment and install appdaemon in there](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/), then [select the venv in `VSCode`](https://code.visualstudio.com/docs/python/environments).
 
-### Typer configuration
+#### Typer configuration
 
 To have the typer catch as many mistakes as possible right from your editor, you should configure [`pyright`](https://github.com/microsoft/pyright) (default typer of VsCode) with appropriate typing constraints in the project where you develop your own automations (with `hapt.py` copied there).
 

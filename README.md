@@ -83,16 +83,16 @@ We're solving AppDaemon's pain point. We introduce a fully typed API, usable wit
 
 We provide a script which when run on a HomeAssistant instance will generate type definitions for all entities connected to the platform.
 
-Run the following commands to download the project and generate your types (please [appropriately fill](#let-the-homeassistant_python_typer-script-know-where-your-homeassistant-instance-is) your HomeAssistant URL and [token](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten), and the path to export `hapt.py` at):
+Run the following commands (e.g. from [the VSCode addon](https://community.home-assistant.io/t/home-assistant-community-add-on-visual-studio-code/107863)) to download the project and generate your types :
 ```console
 git clone https://github.com/Ten0/homeassistant_python_typer.git
 cd homeassistant_python_typer/src
-export HOMEASSISTANT_URL="URL of your home assistant instance"
-export HOMEASSISTANT_TOKEN="A long-lived access token to your HomeAssistant instance"
-python3 -m homeassistant_python_typer /path/to/hapt.py
+git pull && python3 -m homeassistant_python_typer /addon_configs/a0d7b954_appdaemon/apps/hapt.py && cp ../homeassistant_python_typer_helpers.py /addon_configs/a0d7b954_appdaemon/apps/
 ```
 
-The generated `hapt.py` file should be placed in your AppDeamon folder. This enables you to use your entities like so:
+(Command to be [adapted](#running-directly-on-your-computer) if not running directly within a HomeAssistant Addon.)
+
+This enables you to use your entities like so:
 
 ```python
 import appdaemon.plugins.hass.hassapi as hass
@@ -151,16 +151,6 @@ By putting your `appdaemon.yaml` in your [Home Assistant config folder](https://
 
 Note that if running AppDeamon locally instead (which is significantly more practical than copying the files to whatever device HA is running on during development, and enables e.g. using a debugger...), it doesn't support relative paths for `app_dir`. ([#309](https://github.com/AppDaemon/appdaemon/issues/309#issuecomment-959449004))
 
-### Let the homeassistant_python_typer script know where your HomeAssistant instance is
-
-This is done via two environment variables:
-- `HOMEASSISTANT_URL`: The URL of your HomeAssistant instance
-- `HOMEASSISTANT_TOKEN`: A [long-lived token to your HomeAssistant instance](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten)
-
-You may make them accessible without friction as you `cd` into the relevant project folder by using [`direnv`](https://direnv.net/).
-
-Note that this project already has a `.envrc` configured that ends up sourcing the gitignored file `.secrets`, so you may put the definition of these environment variables there.
-
 ### Editor
 
 We provide documentation here for VSCode but of course you may configure other editors that have good support for Python.
@@ -192,7 +182,29 @@ Probably also add:
 ```
 to these settings so that it checks all files and not only those you currently have open.
 
-### Also copy the library associated with the codegen
+### Running directly on your computer
+
+If you prefer to develop directly from the confort of your own computer from your local editor, you may run the script there.
+However in this case it is necessary to tell the script where your HomeAssistant instance is.
+
+This is done via two environment variables:
+- `HOMEASSISTANT_URL`: The URL of your HomeAssistant instance
+- `HOMEASSISTANT_TOKEN`: A [long-lived token to your HomeAssistant instance](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten)
+
+The set of commands to run to update your types then becomes:
+```
+git pull
+export HOMEASSISTANT_URL="URL of your home assistant instance"
+export HOMEASSISTANT_TOKEN="A long-lived access token to your HomeAssistant instance"
+python3 -m homeassistant_python_typer /path/to/write/hapt.py
+```
+
+<details>
+<summary>direnv</summary>
+You may make them accessible without friction as you `cd` into the relevant project folder by using [`direnv`](https://direnv.net/).
+
+Note that this project already has a `.envrc` configured that ends up sourcing the gitignored file `.secrets`, so you may put the definition of these environment variables there.
+</details>
 
 For now it's also required to copy the `homeassistant_python_typer_helpers.py` file from this repository to your app folder as well.
 

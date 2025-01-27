@@ -12,8 +12,27 @@ from .helpers import *
 
 def main():
     # Read from env variables
-    ha_url = os.environ["HOMEASSISTANT_URL"]
-    ha_token = os.environ["HOMEASSISTANT_TOKEN"]
+    is_running_in_addon = "SUPERVISOR_TOKEN" in os.environ
+    if is_running_in_addon:
+        ha_url = os.environ.get("HOMEASSISTANT_URL", "http://supervisor/core")
+        ha_token = os.environ.get("HOMEASSISTANT_TOKEN", os.environ["SUPERVISOR_TOKEN"])
+    else:
+        ok = True
+        if "HOMEASSISTANT_URL" not in os.environ:
+            print("Please set the HOMEASSISTANT_URL environment variable")
+            print("For instance: export HOMEASSISTANT_URL=http://192.168.1.48:8123")
+            ok = False
+        if "HOMEASSISTANT_TOKEN" not in os.environ:
+            print("Please set the HOMEASSISTANT_TOKEN environment variable")
+            print("For instance: export HOMEASSISTANT_TOKEN=<your_long_lived_token>")
+            print(
+                "Documentation on how to get a token: https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5"
+            )
+            ok = False
+        if not ok:
+            sys.exit(1)
+        ha_url = os.environ["HOMEASSISTANT_URL"]
+        ha_token = os.environ["HOMEASSISTANT_TOKEN"]
 
     # Make sure output filename was provided as an argument
     if len(sys.argv) < 2:

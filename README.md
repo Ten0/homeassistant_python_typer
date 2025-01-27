@@ -137,9 +137,17 @@ Of course this requires AppDaemon to be installed on HomeAssistant.
 
 You may use the [AppDaemon add-on of HomeAssistant](https://github.com/hassio-addons/repository/blob/master/appdaemon/DOCS.md) for this.
 
-I found that by default it would use an app folder shipped with the add-on. I haven't found great documentation on how to avoid this, so here's some:
+By default `appdaemon.yaml` and `apps` will be stored in `/addon_configs/a0d7b954_appdaemon`, so those are the files you should edit.
 
-By putting your `appdaemon.yaml` in your [Home Assistant config folder](https://www.home-assistant.io/docs/configuration/#to-find-the-configuration-directory) (in an `appdaemon` directory), [putting](https://appdaemon.readthedocs.io/en/latest/CONFIGURE.html#appdaemon) `app_dir: /homeassistant/appdaemon/apps` in `appdaemon.yaml`, and using `cp /homeassistant/appdaemon/appdaemon.yml /config/appdaemon.yaml` as "init command" in the add-on configuration, it would indeed start AppDaemon using the relevant directory where I'm putting my apps.
+<details>
+<summary>
+<b>Storing AppDaemon config in `/homeassistant`</b>
+</summary>
+
+The default storage path may not be super practical if e.g. you track your `/homeassistant` config folder with git, or regularly edit things in `/homeassistant` from the VSCode addon.
+
+By putting your `appdaemon.yaml` in your [Home Assistant config folder](https://www.home-assistant.io/docs/configuration/#to-find-the-configuration-directory) in an `appdaemon` directory, under a different name, (I use `appdaemon-prod.yaml`, [needs different name because](https://github.com/hassio-addons/addon-appdaemon/blob/6d7b6dd287f5aa9dc75d59c69c2713c3a7f22538/appdaemon/rootfs/etc/s6-overlay/s6-rc.d/init-appdaemon/run#L10-L15)), [putting](https://appdaemon.readthedocs.io/en/latest/CONFIGURE.html#appdaemon) `app_dir: /homeassistant/appdaemon/apps` in `appdaemon.yaml`, and using `cp /homeassistant/appdaemon/appdaemon-prod.yml /config/appdaemon.yaml` as "init command" in the add-on configuration, it would indeed start AppDaemon using `/homeassistant/appdaemon` as source directory instead of `/addon_configs/a0d7b954_appdaemon`.
+</details>
 
 Note that if running AppDeamon locally instead (which is significantly more practical than copying the files to whatever device HA is running on during development, and enables e.g. using a debugger...), it doesn't support relative paths for `app_dir`. ([#309](https://github.com/AppDaemon/appdaemon/issues/309#issuecomment-959449004))
 

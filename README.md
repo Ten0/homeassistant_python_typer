@@ -172,15 +172,21 @@ Install python, [create a virtual environment and install appdaemon in there](ht
 
 To have the typer catch as many mistakes as possible right from your editor, you should configure [`pyright`](https://github.com/microsoft/pyright) (default typer of VsCode) with appropriate typing constraints in the project where you develop your own automations (with `hapt.py` copied there).
 
-Suggested parameters are available in this repository's `.vscode/settings.json`.
+Suggested parameters are available in this repository's `pyrightconfig.json`.
 
-It is recommended to use the same parameters when working on your AppDaemon Apps.
+It is recommended to copy the same parameters over to the folder that you open in VSCode when working on your AppDaemon Apps.
 
-Probably also add:
+You probably also want to enable checking all files and not only those you currently have open:
+
+With Pylance (official VSCode on local machine):
 ```json
 { "python.analysis.diagnosticMode": "workspace" }
 ```
-to these settings so that it checks all files and not only those you currently have open.
+
+With BasedPyright (if running e.g. the VSCode home assistant addon):
+```json
+{ "basedpyright.analysis.diagnosticMode": "workspace" }
+```
 
 ### Running directly on your computer
 

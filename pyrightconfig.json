@@ -1,0 +1,24 @@
+{
+    "typeCheckingMode": "strict",
+    // Be somewhat tolerant with regards to imperfect dependencies or types
+    "reportUnknownMemberType": "none",
+    "reportUnusedImport": "warning",
+    "reportMissingTypeStubs": "none",
+    "reportIncompleteStub": "none",
+    "reportUnknownVariableType": "none",
+    "reportUnknownParameterType": "warning",
+    "reportMissingTypeArgument": "warning",
+    "useLibraryCodeForTypes": true, // Homogeneous with pylance's default
+    // Add warnings for probable programming errors
+    "reportUnnecessaryTypeIgnoreComment": "warning",
+    "reportMissingParameterType": "warning",
+    "reportUnnecessaryComparison": "warning",
+    "reportUnnecessaryIsInstance": "warning",
+    "reportUnnecessaryCast": "warning",
+    "reportUnnecessaryContains": "warning",
+    "reportMatchNotExhaustive": "error",
+    "reportUnusedVariable": "warning",
+    "reportUnusedCoroutine": "warning",
+    "reportUnusedExpression": "warning",
+    "reportUnusedFunction": "warning",
+}

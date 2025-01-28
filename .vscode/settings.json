@@ -1,26 +1,3 @@
 {
-	"python.analysis.typeCheckingMode": "strict",
-	"python.analysis.diagnosticSeverityOverrides": {
-		// Be somewhat tolerant with regards to imperfect dependencies or types
-		"reportUnknownMemberType": "none",
-		"reportUnusedImport": "warning",
-		"reportMissingTypeStubs": "none",
-		"reportIncompleteStub": "none",
-		"reportUnknownVariableType": "none",
-		"reportUnknownParameterType": "warning",
-		"reportMissingTypeArgument": "warning",
-		// Add warnings for probable programming errors
-		"reportUnnecessaryTypeIgnoreComment": "warning",
-		"reportMissingParameterType": "warning",
-		"reportUnnecessaryComparison": "warning",
-		"reportUnnecessaryIsInstance": "warning",
-		"reportUnnecessaryCast": "warning",
-		"reportUnnecessaryContains": "warning",
-		"reportMatchNotExhaustive": "error",
-		"reportUnusedVariable": "warning",
-		"reportUnusedCoroutine": "warning",
-		"reportUnusedExpression": "warning",
-		"reportUnusedFunction": "warning",
-	},
 	"editor.insertSpaces": true,
 }

@@ -84,10 +84,17 @@ We're solving AppDaemon's pain point. We introduce a fully typed API, usable wit
 We provide a script which when run on a HomeAssistant instance will generate type definitions for all entities connected to the platform.
 
 Run the following commands (e.g. from [the VSCode addon](https://community.home-assistant.io/t/home-assistant-community-add-on-visual-studio-code/107863)) to download the project and generate your types :
+
+Install:
 ```console
+cd /addon_configs/a0d7b954_appdaemon/
 git clone https://github.com/Ten0/homeassistant_python_typer.git
-cd homeassistant_python_typer/src
-git pull && python3 -m homeassistant_python_typer /addon_configs/a0d7b954_appdaemon/apps/hapt.py && cp ../homeassistant_python_typer_helpers.py /addon_configs/a0d7b954_appdaemon/apps/
+```
+
+Run:
+```console
+cd /addon_configs/a0d7b954_appdaemon/homeassistant_python_typer/src && git pull && \
+python3 -m homeassistant_python_typer /addon_configs/a0d7b954_appdaemon/apps/hapt.py && cp ../homeassistant_python_typer_helpers.py /addon_configs/a0d7b954_appdaemon/apps/
 ```
 
 (Command to be [adapted](#running-directly-on-your-computer) if not running directly within a HomeAssistant Addon.)
@@ -122,7 +129,7 @@ class SensorLight(hass.Hass):
         )
 ```
 
-where with an appropriately configured editor (e.g. [VSCode](https://code.visualstudio.com/) with [Python extension](https://code.visualstudio.com/docs/languages/python)):
+where with an [appropriately configured editor](#editor):
 - If you were to typo the name of the light, you'd get a nice big red error message stating that this light doesn't exist in your Home Assistant
 - If your light were to not support RGB because it's a light where only the temperature and brightness can be configured, you'd get a nice big red error message stating that `rgb_color` is not available for `hallway_light`'s `turn_on`.
 - Wherever you would get a dropdown in HomeAssistant's no-code editor, you'll get auto-completion and type checking for all possible input values for the parameter.

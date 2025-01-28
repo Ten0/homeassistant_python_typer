@@ -52,7 +52,7 @@ def service_function_body(
             field_value_construction = field_name
         else:
             if is_multiple:
-                field_value_construction = f"[{field_value_construction.replace("#FIELD_NAME#", f"{field_name}_e")} for {field_name}_e in {field_name}]"
+                field_value_construction = f"[{field_value_construction.replace('#FIELD_NAME#', f'{field_name}_e')} for {field_name}_e in {field_name}]"
             else:
                 field_value_construction = field_value_construction.replace(
                     "#FIELD_NAME#", field_name

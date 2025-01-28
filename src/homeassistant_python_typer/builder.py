@@ -26,7 +26,7 @@ class HaptBuilder:
             repr(option["value"]) if isinstance(option, dict) else repr(option)
             for option in options
         )
-        type = f"Literal[{", ".join(options_repr)}]"
+        type = f"Literal[{', '.join(options_repr)}]"
         if (field_name, type) in self.enum_types:
             return self.enum_types[(field_name, type)].name
         else:

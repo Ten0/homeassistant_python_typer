@@ -72,9 +72,10 @@ def state_type(
                 # might need to add that to the list (in which case that would probably be None)
                 options = entity_attributes["options"]
                 return_type = builder.enum_type("state", "State", options)
+                line_break = "\n"  # python 3.11 support
                 doc = f"""
                         Possible states:
-                        - {'\n                        - '.join((f"`{option}`" for option in options))}"""
+                        - {f'{line_break}                        - '.join((f"`{option}`" for option in options))}"""
             case (
                 "distance"
                 | "temperature"

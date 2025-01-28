@@ -9,7 +9,7 @@ def remove_common_indent_levels(text: str) -> str:
 
 
 def tab(text: str, n: int = 1) -> str:
-    return "\n".join((f"{"    "*n}{line}" for line in text.split("\n")))
+    return "\n".join((f"{'    '*n}{line}" for line in text.split("\n")))
 
 
 def retab(text: str, n: int = 1) -> str:

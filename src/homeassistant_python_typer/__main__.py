@@ -112,8 +112,9 @@ def main():
                 + "\n\n"
             )
         for service in domain.services:
+            line_break = "\n"  # python 3.11 support
             domains_classes_body += (
-                f"""{retab(service.declaration.lstrip("\n"), 3)}\n\n"""
+                f"""{retab(service.declaration.lstrip(line_break), 3)}\n\n"""
             )
         domains_init_body += f"""
             self.{domain_name} = {domain_name_in_title_case}Domain(hapt)"""

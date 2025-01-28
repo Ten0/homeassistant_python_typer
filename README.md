@@ -171,9 +171,26 @@ You may use VSCode either:
    - Simpler setup because no file transfer is necessary
    - I would still recommended to use `git` to save versions of your code (learn it by using a graphical git client such as VSCode + Git Graph extension), but you could also choose to rely only on Home Assistant backups.
 
+#### Install Python extension
+
+Open your editor (e.g. VSCode), and browse to your AppDaemon apps folder (e.g. if using the VSCode addon, `File > Open folder > /addon_configs/a0d7b954_appdaemon`).
+
+- If you are using the VSCode addon of Home Assistant (or any other non-packed-by-microsoft flavor), install the [BasedPyright](https://open-vsx.org/extension/detachhead/basedpyright) extension.
+- If you are using the Microsoft-packed VSCode, you may install the [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) extension (which contains Pylance, which uses Pyright).
+
 #### Python configuration & venv
 
-Install python, [create a virtual environment and install appdaemon in there](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/), then [select the venv in `VSCode`](https://code.visualstudio.com/docs/python/environments).
+We need to make appdaemon accessible to the type checker.
+
+1. Create a virtual environment in your VSCode workspace:
+   - Press Ctrl+Shift+P (or Cmd+Shift+P on mac) to open the command palette (Ctrl+P then type `>` if that doesn't work)
+   - Type `> Python: Select Interpreter`
+   - Click "Create virtual environment"
+   - Once that [complates](https://code.visualstudio.com/docs/python/environments#_using-the-create-environment-command), at the bottom right of the editor, if you have any `.py` file open, it should show `3.11.2 ('.venv': venv)`
+2. Install appdaemon in the virtual env:
+   - Press Ctrl+Shift+C to open a terminal
+   - It should show `.venv` at the beginning of the prompt, to signify that it is running within the context of the virtual env.
+   - Type `pip install --upgrade appdaemon` in the VSCode terminal. It should complete without any error after some time.
 
 #### Typer configuration
 
@@ -181,19 +198,24 @@ To have the typer catch as many mistakes as possible right from your editor, you
 
 Suggested parameters are available in this repository's `pyrightconfig.json`.
 
-It is recommended to copy the same parameters over to the folder that you open in VSCode when working on your AppDaemon Apps.
+It is recommended to copy the same parameters over to the folder that you open in VSCode when working on your AppDaemon Apps:
+```bash
+cp /addon_configs/a0d7b954_appdaemon/homeassistant_python_typer/pyrightconfig.json /addon_configs/a0d7b954_appdaemon/pyrightconfig.json
+```
 
-You probably also want to enable checking all files and not only those you currently have open:
+You probably also want to enable checking all files and not only those you currently have open, by adding to the `.vscode/settings.json` file (may need to be created):
+
+With BasedPyright (if running e.g. the VSCode home assistant addon):
+```json
+{ "basedpyright.analysis.diagnosticMode": "workspace" }
+```
 
 With Pylance (official VSCode on local machine):
 ```json
 { "python.analysis.diagnosticMode": "workspace" }
 ```
 
-With BasedPyright (if running e.g. the VSCode home assistant addon):
-```json
-{ "basedpyright.analysis.diagnosticMode": "workspace" }
-```
+
 
 ### Running directly on your computer
 

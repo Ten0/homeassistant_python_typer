@@ -119,7 +119,7 @@ class SensorLight(hass.Hass):
             # - Whether the `color_name` parameter exists (auto-completed)
             # - Whether HomeAssistant knows about this particular color name (auto-completed)
             # - And even whether RGB support is available for your particular lightbulb!
-            color_name="lavenderblush"
+            color_name="lavenderblush",
 
             # Alternatively (not both at the same time of course):
             # Again this typechecks that your lightbulb supports RGB

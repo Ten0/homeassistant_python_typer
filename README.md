@@ -1,10 +1,28 @@
-# Home Assistant Python typer
+# Home Assistant Python typer <!-- omit in toc -->
 
 <img src="./logo.png" align="right" alt="Logo" width="174" height="149">
 
 Full-fledged typing for your home automation applications. Never see your automations break again.
 
 Bring a real software development experience to your home automation.
+
+### Table of contents
+
+- [⏱️ What](#️-what)
+- [💡 Why](#-why)
+  - [🖱️ Nocode?](#️-nocode)
+  - [👨‍💻 Code?](#-code)
+  - [💡 So what?](#-so-what)
+- [🚀 How it works](#-how-it-works)
+  - [🔧 Installation](#-installation)
+  - [🛡️ Repeatable read](#️-repeatable-read)
+    - [Why it's useful](#why-its-useful)
+    - [What to be careful about](#what-to-be-careful-about)
+- [💬 Community \& Feedback](#-community--feedback)
+- [📚 Diverse how-to s](#-diverse-how-to-s)
+  - [Debugger](#debugger)
+- [🔭 Vision](#-vision)
+- [🧘 Inspirations](#-inspirations)
 
 # ⏱️ What
 
@@ -83,21 +101,13 @@ We're solving AppDaemon's pain point. We introduce a fully typed API, usable wit
 
 We provide a script which when run on a HomeAssistant instance will generate type definitions for all entities connected to the platform.
 
-Run the following commands (e.g. from [the VSCode addon](https://community.home-assistant.io/t/home-assistant-community-add-on-visual-studio-code/107863)) to download the project and generate your types :
-
-Install:
-```console
-cd /addon_configs/a0d7b954_appdaemon/
-git clone https://github.com/Ten0/homeassistant_python_typer.git
-```
-
-Run:
+Run the the script to generate your types :
 ```console
 cd /addon_configs/a0d7b954_appdaemon/homeassistant_python_typer/src && git pull && \
 python3 -m homeassistant_python_typer /addon_configs/a0d7b954_appdaemon/apps/hapt.py && cp ../homeassistant_python_typer_helpers.py /addon_configs/a0d7b954_appdaemon/apps/
 ```
 
-(Command to be [adapted](#running-directly-on-your-computer) if not running directly within a HomeAssistant Addon.)
+(Command to be [adapted](./INSTALL.md#%EF%B8%8F-running-directly-on-your-computer) if not running directly within a HomeAssistant Addon.)
 
 This enables you to use your entities like so:
 
@@ -129,7 +139,7 @@ class SensorLight(hass.Hass):
         )
 ```
 
-where with an [appropriately configured editor](#editor):
+where with an [appropriately configured editor](./INSTALL.md#-editor):
 - If you were to typo the name of the light, you'd get a nice big red error message stating that this light doesn't exist in your Home Assistant
 - If your light were to not support RGB because it's a light where only the temperature and brightness can be configured, you'd get a nice big red error message stating that `rgb_color` is not available for `hallway_light`'s `turn_on`.
 - Wherever you would get a dropdown in HomeAssistant's no-code editor, you'll get auto-completion and type checking for all possible input values for the parameter.
@@ -138,22 +148,20 @@ where with an [appropriately configured editor](#editor):
 
 ## 🔧 Installation
 
+**Detailed procedure:** See [Install guide](./INSTALL.md).
+
 **TL;DR:**
 1. Git clone
-2. Run script as described above (with `HOMEASSISTANT_URL` & `HOMEASSISTANT_TOKEN` if running locally)
-3. Pick venv with appdaemon installed in VSCode (w. Pylance/BasedPyright)
+2. Run script as described above (with `HOMEASSISTANT_URL` & `HOMEASSISTANT_TOKEN` env vars if running locally)
+3. Pick venv with appdaemon installed in VSCode (w. Pylance/BasedPyright extension)
 4. Symlink `pyrightconfig_recommended.jsonc` of this project to `/pyrightconfig.json` of your appdaemon apps workspace
-5. Enable `"python.analysis.diagnosticMode": "workspace"` in VSCode
-
-**Detailed procedure:** See [Install guide](./INSTALL.md).
+5. Enable `"python.analysis.diagnosticMode": "workspace"` in VSCode (or `basedpyright.analysis.diagnosticMode` if using BasedPyright)
 
 ## 🛡️ Repeatable read
 
-The types provided by this project have a repeatable-read layer on the `state()`.
+The types provided by this project have a repeatable-read layer on the `state()` of entities.
 
-What this means is, when you read the state of the same object twice in the same event handling, you are guaranteed to get the same result, avoiding cases where an entity's state would change in the middle of handling an event, which could otherwise potentially lead to insidious race bugs.
-
-In practice this means you should consider each event to be handled with a "snapshot" view of entities states (which although not completely correct because of possible reordering across entities is the easiest way to see it).
+What this means is, when you read the state of the same entity twice in the same event handling, you are guaranteed to get the same result, avoiding cases where an entity's state would change in the middle of handling an event, which could otherwise potentially lead to insidious race bugs.
 
 ### Why it's useful
 
@@ -193,9 +201,9 @@ Despite this downside, it is estimated to be a better compromise than not having
 
 Ultimately this project will probably either find a way to identify event handling jumps automatically to clear caches automatically, or provide overlays for more appdaemon APIs that would also perform implicit cache clearing where appropriate.
 
-## 💬 Community & Feedback
+# 💬 Community & Feedback
 
-This project is in its early stages, and this README is probably not as detailed as it could be, so there may be some rough edges, (esp. if you're beginning with programming with code).
+This project is in its early stages, so the documentation might not be perfect yet.
 
 If you have even the simplest question, or ideas, please open a [Discussion](https://github.com/Ten0/homeassistant_python_typer/discussions/categories/q-a) so we can improve!
 
@@ -263,4 +271,4 @@ Future ideas for this project:
 
 # 🧘 Inspirations
 
-I (Ten0) am a core team member of [Diesel](https://diesel.rs/), the #1 library of the Rust ecosystem for doing precisely this (bringing native typechecking capabilities from introspection) for the general case of SQL databases.
+I (Ten0) am a core team member of [Diesel](https://diesel.rs/), the [#1](https://lib.rs/crates/diesel) library of the Rust ecosystem for doing precisely this (bringing native typechecking capabilities from introspection) for the general case of SQL databases.

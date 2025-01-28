@@ -1,10 +1,22 @@
-# Home Assistant Python typer Install guide
+# Home Assistant Python typer Install guide <!-- omit in toc -->
+
+### Table of contents
+
+- [🚂 AppDaemon](#-appdaemon)
+- [📜 Editor](#-editor)
+  - [Install Python extension](#install-python-extension)
+  - [Python configuration \& venv](#python-configuration--venv)
+  - [Install and run homeassistant\_python\_typer](#install-and-run-homeassistant_python_typer)
+  - [Typer configuration](#typer-configuration)
+  - [Note about auto-reload (for VSCode addon users)](#note-about-auto-reload-for-vscode-addon-users)
+- [⚡️ Running directly on your computer](#️-running-directly-on-your-computer)
+
 
 ## 🚂 AppDaemon
 
 Of course this requires AppDaemon to be installed on HomeAssistant.
 
-You may use the [AppDaemon add-on of HomeAssistant](https://github.com/hassio-addons/repository/blob/master/appdaemon/DOCS.md) for this.
+You may install the [AppDaemon add-on of HomeAssistant](https://github.com/hassio-addons/repository/blob/master/appdaemon/DOCS.md) for this.
 
 By default `appdaemon.yaml` and `apps` will be stored in `/addon_configs/a0d7b954_appdaemon`, so those are the files you should edit.
 
@@ -31,33 +43,41 @@ You may use VSCode either:
    - It is highly recommended to use `git` for such file transfer. (Github private repos are free.)
 2. Via [the VSCode addon](https://community.home-assistant.io/t/home-assistant-community-add-on-visual-studio-code/107863) on Home Assistant
    - Super simple setup to get started, no file transfer necessary
+   - Requires some resources on your HomeAssistant instance (~800M dedicated RAM)
    - I would still recommended to use `git` to save versions of your code (learn it by using a graphical git client such as VSCode + Git Graph extension), but you could also choose to rely only on Home Assistant backups.
 
 ### Install Python extension
 
-Open your editor (e.g. VSCode), and browse to your AppDaemon apps folder (e.g. if using the VSCode addon, `File > Open folder > /addon_configs/a0d7b954_appdaemon`).
-
-- If you are using the VSCode addon of Home Assistant (or any other non-packed-by-microsoft flavor), install the [BasedPyright](https://open-vsx.org/extension/detachhead/basedpyright) extension.
-- If you are using the Microsoft-packed VSCode, you may install the [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) extension (which contains Pylance, which uses Pyright).
+- If you are using the VSCode addon of Home Assistant (or any other non-packed-by-microsoft flavor), [install](https://code.visualstudio.com/docs/editor/extension-marketplace#_browse-for-extensions) the [BasedPyright](https://open-vsx.org/extension/detachhead/basedpyright) extension.
+- If you are using the Microsoft-packed VSCode, you may [install](https://code.visualstudio.com/docs/editor/extension-marketplace#_browse-for-extensions) the [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) extension (which contains Pylance, which uses Pyright).
 
 ### Python configuration & venv
 
 We need to make appdaemon accessible to the type checker.
 
-1. Create a virtual environment in your VSCode workspace:
+1. Open your editor (e.g. VSCode), and browse to your AppDaemon apps folder (e.g. if using the VSCode addon, `File > Open folder > /addon_configs/a0d7b954_appdaemon`).
+2. Create a virtual environment in your VSCode workspace:
    - Press Ctrl+Shift+P (or Cmd+Shift+P on mac) to open the command palette (Ctrl+P then type `>` if that doesn't work)
    - Type `> Python: Select Interpreter`
    - Click "Create virtual environment"
-   - Once that [complates](https://code.visualstudio.com/docs/python/environments#_using-the-create-environment-command), at the bottom right of the editor, if you have any `.py` file open, it should show `3.11.x ('.venv': venv)`
-2. Install appdaemon in the virtual env:
+   - Once that [completes](https://code.visualstudio.com/docs/python/environments#_using-the-create-environment-command), at the bottom right of the editor, if you have any `.py` file open, it should show `3.11.x ('.venv': venv)`
+3. Install appdaemon in the virtual env:
    - Press Ctrl+Shift+C to open a terminal
    - It should show `.venv` at the beginning of the prompt, to signify that it is running within the context of the virtual env that we have just created.
    - Type `pip install --upgrade appdaemon` in the VSCode terminal. It should complete without any error after some time.
      - (Note that this command may need to be re-run after appdaemon updates, to keep venv in sync with appdaemon addon version)
 
+### Install and run homeassistant_python_typer
+
+Press Ctrl+Shift+C (or call "Create a new terminal" from the command palette) in VSCode to open a terminal.
+
+1. Go to your appdaemon directory: `cd /addon_configs/a0d7b954_appdaemon/`
+2. Download homeassistant_python_typer: `git clone https://github.com/Ten0/homeassistant_python_typer.git`
+3. Run as described in [How it works](./README.md#-how-it-works)
+
 ### Typer configuration
 
-To have the typer catch as many mistakes as possible right from your editor, you should configure [`pyright`](https://github.com/microsoft/pyright) (default typer of VsCode) with appropriate typing constraints in the project where you develop your own automations (with `hapt.py` copied there).
+To have the typer catch as many mistakes as possible right from your editor, you must configure the extension installed above with appropriate typing constraints in your appdaemon workspace.
 
 Suggested parameters are available in this repository's `pyrightconfig_recommended.jsonc`.
 
@@ -66,7 +86,7 @@ It is recommended to copy these (or better yet, symlink them so that you get upd
 cd /addon_configs/a0d7b954_appdaemon/ && ln -s ./homeassistant_python_typer/pyrightconfig_recommended.jsonc ./pyrightconfig.json
 ```
 
-Also you probably want to make VSCode check all files and not only those you currently have open, by adding to the `.vscode/settings.json` file (may need to be created):
+Also you should make VSCode check all files and not only those you currently have open, by adding to the `.vscode/settings.json` file (may need to be created):
 
 With BasedPyright (if running e.g. the VSCode home assistant addon):
 ```json
@@ -103,19 +123,17 @@ This is done via two environment variables:
 
 The set of commands to run to update your types then becomes:
 ```
+cd homeassistant_python_typer/src
 git pull
 export HOMEASSISTANT_URL="URL of your home assistant instance"
 export HOMEASSISTANT_TOKEN="A long-lived access token to your HomeAssistant instance"
-python3 -m homeassistant_python_typer /path/to/write/hapt.py
+python3 -m homeassistant_python_typer /path/to/write/hapt.py && cp ../homeassistant_python_typer_helpers.py /path/to/write/homeassistant_python_typer_helpers.py
 ```
 
 <details>
 <summary>direnv</summary>
-You may make them accessible without friction as you `cd` into the relevant project folder by using [`direnv`](https://direnv.net/).
+
+You may make the environment variables (and appropriate Python version) accessible without friction as you `cd` into the relevant project folder by using [`direnv`](https://direnv.net/).
 
 Note that this project already has a `.envrc` configured that ends up sourcing the gitignored file `.secrets`, so you may put the definition of these environment variables there.
 </details>
-
-For now it's also required to copy the `homeassistant_python_typer_helpers.py` file from this repository to your app folder as well.
-
-This will probably get cleaned up eventually in favor of letting the script do that copy for you as well (you'd specify an output directory), or by having the script write all of that into `hapt.py`, or having it as a `pip` dependency.

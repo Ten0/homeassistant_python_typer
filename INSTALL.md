@@ -9,6 +9,7 @@
   - [Install and run homeassistant\_python\_typer](#install-and-run-homeassistant_python_typer)
   - [Typer configuration](#typer-configuration)
   - [Note about auto-reload (for VSCode addon users)](#note-about-auto-reload-for-vscode-addon-users)
+- [🐣 First app](#-first-app)
 - [⚡️ Running directly on your computer](#️-running-directly-on-your-computer)
 
 
@@ -73,7 +74,8 @@ Press Ctrl+Shift+C (or call "Create a new terminal" from the command palette) in
 
 1. Go to your appdaemon directory: `cd /addon_configs/a0d7b954_appdaemon/`
 2. Download homeassistant_python_typer: `git clone https://github.com/Ten0/homeassistant_python_typer.git`
-3. Run as described in [How it works](./README.md#-how-it-works)
+3. Run as described in [How it works](./README.md#-how-it-works) to generate the `apps/hapt.py` and `apps/homeassistant_python_typer_helpers.py` files.
+   - Note that this command will need to be re-run if you have added/removed/updated entities in your Home Assistant and possibly after Home Assistant updates, to make everything known in the `hapt.py` file.
 
 ### Typer configuration
 
@@ -111,6 +113,59 @@ You may want either:
 Note that in any case, you may need to reload the appdaemon addon after editing files other than a single-app file (in particular after refreshing `hapt.py`).
 
 To some extent, this last issue can be avoided by [declaring Global Module Dependencies in `apps.yaml`](https://appdaemon.readthedocs.io/en/latest/APPGUIDE.html#global-module-dependencies)
+
+## 🐣 First app
+
+For night/day/time and other similar features to work properly in appdaemon, update the `appdaemon.yaml` file with appropriate values for:
+```yaml
+appdaemon:
+  latitude: 52.379189
+  longitude: 4.899431
+  elevation: 2
+  time_zone: Europe/Amsterdam
+```
+
+Then we will register our first app.
+Update your `apps.yaml` like so:
+```yaml
+homeassistant_python_typer_helpers:
+  module: homeassistant_python_typer_helpers
+  global: true
+hapt:
+  module: hapt
+  global: true
+  dependencies: homeassistant_python_typer_helpers
+
+my_first_sensor_light:
+  module: my_first_sensor_light
+  class: HallwaySensorLights
+  dependencies:
+    - hapt
+```
+
+More details on the `apps.yaml` structure and options [in the AppDaemon documentation](https://appdaemon.readthedocs.io/en/latest/APPGUIDE.html#configuration-of-apps).
+
+Copy over the `sensor_lights.py` example to the `my_first_sensor_light.py` file:
+```bash
+cd /addon_configs/a0d7b954_appdaemon/
+cp ./homeassistant_python_typer/examples/sensor_lights.py ./apps/my_first_sensor_light.py
+```
+
+Opening that `my_first_sensor_light.py` file in your editor, you should see errors: they relate to the example referring to entities that may not exist in your installation.
+
+Go ahead and update the file, using [entity ID](https://www.home-assistant.io/docs/configuration/customizing-devices/)s that exist in your house:
+```python
+self.light = self.ha.light.an_actual_light_that_you_have_in_your_homeassistant
+self.sensor = self.ha.binary_sensor.an_actual_motion_sensor_that_you_have_in_your_homeassistant
+```
+
+The errors should disappear, and you should have benefited from auto-completion while looking for your entities. If there are errors left in the `turn_on` or `turn_off` call stating that some parameters don't exist, it means that your particular light does not support them. Remove them from the call.
+
+Disable any automation that currently control the light you're testing with (so that we can test properly).
+
+Restart appdaemon and check its log. It should give "Initialized HallwaySensorLights" and no error message.
+
+Now go wave your hand in front of your sensor, and your light should turn on! 😊
 
 ## ⚡️ Running directly on your computer
 

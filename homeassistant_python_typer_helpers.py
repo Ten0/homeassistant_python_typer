@@ -171,7 +171,7 @@ class Entity:
                 return self.hapt.state_cache[self.entity_id]
             else:
                 entity_state = self.query_state(attribute=None, copy=True)
-                if entity_state is None:  # pyright:ignore[reportUnnecessaryComparison]
+                if entity_state is None:
                     raise ValueError(f"{self.entity_id} not found")
                 self.hapt.state_cache[self.entity_id] = entity_state
                 return entity_state
@@ -181,7 +181,7 @@ class Entity:
                 entity_state = self.hapt.full_cache[self.entity_id]
             else:
                 entity_state = self.query_state(attribute="all", copy=True)
-                if entity_state is None:  # pyright:ignore[reportUnnecessaryComparison]
+                if entity_state is None:
                     raise ValueError(f"{self.entity_id} not found")
                 self.hapt.full_cache[self.entity_id] = entity_state
                 self.hapt.state_cache[self.entity_id] = entity_state["state"]

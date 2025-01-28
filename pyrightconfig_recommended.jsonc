@@ -1,6 +1,8 @@
-// Pyrightconfig for the typer itself.
-// Prefer using pyrightconfig_recommended.jsonc as a template for your projects.
 {
+    // Specify which paths to check
+    "include": [
+        "./apps/**"
+    ],
     "typeCheckingMode": "strict",
     // Be somewhat tolerant with regards to imperfect dependencies or types
     "reportUnknownMemberType": "none",
@@ -22,5 +24,5 @@
     "reportUnusedVariable": "warning",
     "reportUnusedCoroutine": "warning",
     "reportUnusedExpression": "warning",
-    "reportUnusedFunction": "warning",
+    "reportUnusedFunction": "warning"
 }

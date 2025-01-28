@@ -1,0 +1,121 @@
+# Home Assistant Python typer Install guide
+
+## 🚂 AppDaemon
+
+Of course this requires AppDaemon to be installed on HomeAssistant.
+
+You may use the [AppDaemon add-on of HomeAssistant](https://github.com/hassio-addons/repository/blob/master/appdaemon/DOCS.md) for this.
+
+By default `appdaemon.yaml` and `apps` will be stored in `/addon_configs/a0d7b954_appdaemon`, so those are the files you should edit.
+
+<details>
+<summary>
+<b>Storing AppDaemon config in `/homeassistant`</b>
+</summary>
+
+The default storage path may not be super practical if e.g. you track your `/homeassistant` config folder with git and edit on your local machine, or regularly edit things in `/homeassistant` from the VSCode addon and you don't want to switch folders all the time.
+
+By putting your `appdaemon.yaml` in your [Home Assistant config folder](https://www.home-assistant.io/docs/configuration/#to-find-the-configuration-directory) in an `appdaemon` directory, under a different name, (I use `appdaemon-prod.yaml`, [needs different name because](https://github.com/hassio-addons/addon-appdaemon/blob/6d7b6dd287f5aa9dc75d59c69c2713c3a7f22538/appdaemon/rootfs/etc/s6-overlay/s6-rc.d/init-appdaemon/run#L10-L15)), [putting](https://appdaemon.readthedocs.io/en/latest/CONFIGURE.html#appdaemon) `app_dir: /homeassistant/appdaemon/apps` in `appdaemon.yaml`, and using `cp /homeassistant/appdaemon/appdaemon-prod.yml /config/appdaemon.yaml` as "init command" in the add-on configuration, it would indeed start AppDaemon using `/homeassistant/appdaemon` as source directory instead of `/addon_configs/a0d7b954_appdaemon`.
+
+Note that if running AppDeamon locally instead (which is significantly more practical than copying the files to whatever device HA is running on during development, and enables e.g. using a debugger...), it doesn't support relative paths for `app_dir`. ([#309](https://github.com/AppDaemon/appdaemon/issues/309#issuecomment-959449004))
+</details>
+
+## 📜 Editor
+
+We provide documentation here for VSCode but of course you may configure other editors that have good support for Python.
+
+You may use VSCode either:
+1. Directly on your own computer ([Download](https://code.visualstudio.com/))
+   - Reactive and flexible editing, with the full power of a native editor on your performant computer
+   - Requires to setup file transfer to send your code to your Home Assistant instance
+   - It is highly recommended to use `git` for such file transfer. (Github private repos are free.)
+2. Via [the VSCode addon](https://community.home-assistant.io/t/home-assistant-community-add-on-visual-studio-code/107863) on Home Assistant
+   - Super simple setup to get started, no file transfer necessary
+   - I would still recommended to use `git` to save versions of your code (learn it by using a graphical git client such as VSCode + Git Graph extension), but you could also choose to rely only on Home Assistant backups.
+
+### Install Python extension
+
+Open your editor (e.g. VSCode), and browse to your AppDaemon apps folder (e.g. if using the VSCode addon, `File > Open folder > /addon_configs/a0d7b954_appdaemon`).
+
+- If you are using the VSCode addon of Home Assistant (or any other non-packed-by-microsoft flavor), install the [BasedPyright](https://open-vsx.org/extension/detachhead/basedpyright) extension.
+- If you are using the Microsoft-packed VSCode, you may install the [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) extension (which contains Pylance, which uses Pyright).
+
+### Python configuration & venv
+
+We need to make appdaemon accessible to the type checker.
+
+1. Create a virtual environment in your VSCode workspace:
+   - Press Ctrl+Shift+P (or Cmd+Shift+P on mac) to open the command palette (Ctrl+P then type `>` if that doesn't work)
+   - Type `> Python: Select Interpreter`
+   - Click "Create virtual environment"
+   - Once that [complates](https://code.visualstudio.com/docs/python/environments#_using-the-create-environment-command), at the bottom right of the editor, if you have any `.py` file open, it should show `3.11.x ('.venv': venv)`
+2. Install appdaemon in the virtual env:
+   - Press Ctrl+Shift+C to open a terminal
+   - It should show `.venv` at the beginning of the prompt, to signify that it is running within the context of the virtual env that we have just created.
+   - Type `pip install --upgrade appdaemon` in the VSCode terminal. It should complete without any error after some time.
+     - (Note that this command may need to be re-run after appdaemon updates, to keep venv in sync with appdaemon addon version)
+
+### Typer configuration
+
+To have the typer catch as many mistakes as possible right from your editor, you should configure [`pyright`](https://github.com/microsoft/pyright) (default typer of VsCode) with appropriate typing constraints in the project where you develop your own automations (with `hapt.py` copied there).
+
+Suggested parameters are available in this repository's `pyrightconfig_recommended.jsonc`.
+
+It is recommended to copy these (or better yet, symlink them so that you get updates) over to the folder that you open in VSCode when working on your AppDaemon Apps:
+```bash
+cd /addon_configs/a0d7b954_appdaemon/ && ln -s ./homeassistant_python_typer/pyrightconfig_recommended.jsonc ./pyrightconfig.json
+```
+
+Also you probably want to make VSCode check all files and not only those you currently have open, by adding to the `.vscode/settings.json` file (may need to be created):
+
+With BasedPyright (if running e.g. the VSCode home assistant addon):
+```json
+{ "basedpyright.analysis.diagnosticMode": "workspace" }
+```
+
+With Pylance (official VSCode on local machine):
+```json
+{ "python.analysis.diagnosticMode": "workspace" }
+```
+
+### Note about auto-reload (for VSCode addon users)
+
+By default, the VSCode editor will auto-save all files. Also, appdaemon will auto-reload any touched file.
+
+This means that if you're running via the VSCode addon directly on HomeAssistant, as you're editing the files, appdaemon will keep attempting to reload files as you are still writing them, so they will typically be broken.
+
+You may want either:
+- To disable VSCode auto-save in its settings (only manually save with Ctrl+S)
+- To disable appdaemon auto-reload by setting `production: true` in `appdaemon.yaml`, and reload the addon when you want to test new app versions (slower)
+
+Note that in any case, you may need to reload the appdaemon addon after editing files other than a single-app file (in particular after refreshing `hapt.py`).
+
+To some extent, this last issue can be avoided by [declaring Global Module Dependencies in `apps.yaml`](https://appdaemon.readthedocs.io/en/latest/APPGUIDE.html#global-module-dependencies)
+
+## ⚡️ Running directly on your computer
+
+If you prefer to develop directly from the confort of your own computer from your local editor, you may run the typer script there as well.
+However in this case it is necessary to tell the script where your HomeAssistant instance is.
+
+This is done via two environment variables:
+- `HOMEASSISTANT_URL`: The URL of your HomeAssistant instance
+- `HOMEASSISTANT_TOKEN`: A [long-lived token to your HomeAssistant instance](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten)
+
+The set of commands to run to update your types then becomes:
+```
+git pull
+export HOMEASSISTANT_URL="URL of your home assistant instance"
+export HOMEASSISTANT_TOKEN="A long-lived access token to your HomeAssistant instance"
+python3 -m homeassistant_python_typer /path/to/write/hapt.py
+```
+
+<details>
+<summary>direnv</summary>
+You may make them accessible without friction as you `cd` into the relevant project folder by using [`direnv`](https://direnv.net/).
+
+Note that this project already has a `.envrc` configured that ends up sourcing the gitignored file `.secrets`, so you may put the definition of these environment variables there.
+</details>
+
+For now it's also required to copy the `homeassistant_python_typer_helpers.py` file from this repository to your app folder as well.
+
+This will probably get cleaned up eventually in favor of letting the script do that copy for you as well (you'd specify an output directory), or by having the script write all of that into `hapt.py`, or having it as a `pip` dependency.

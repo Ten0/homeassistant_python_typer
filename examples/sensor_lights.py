@@ -2,7 +2,6 @@
 Basic sensor lights automation.
 """
 
-from datetime import time
 import appdaemon.plugins.hass.hassapi as hass
 from hapt import HomeAssistant
 

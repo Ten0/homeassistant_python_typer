@@ -31,7 +31,7 @@ def service_function_body(
             continue
 
         # It should indeed be active
-        selector = field_data["selector"]
+        selector = field_data.get("selector", {})
         field_type_and_default, field_value_construction = choose_field_type(
             field_name,
             selector,

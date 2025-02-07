@@ -7,6 +7,7 @@ from typing import (
     Optional,
     ParamSpec,
     TypeAlias,
+    assert_never,
 )
 from appdaemon.adbase import ADBase
 from appdaemon.utils import sync_wrapper
@@ -396,8 +397,8 @@ class OnOffState(Entity):
                 return False
             case "on":
                 return True
-            case _:  # pyright: ignore[reportUnnecessaryComparison]
-                raise ValueError(f"Unexpected entity state: {entity_state}")
+            case _:
+                assert_never(entity_state)
 
     def is_off(self) -> bool:
         """

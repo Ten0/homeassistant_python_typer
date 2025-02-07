@@ -9,11 +9,12 @@ Features:
 - "Heat now" switch to bypass presence detection and start heating right away (automatically turns off)
 """
 
-from datetime import time
-import datetime
 import appdaemon.plugins.hass.hassapi as hass
 from hapt import HomeAssistant
 import hapt
+import datetime
+from datetime import time
+from typing import assert_never
 from dataclasses import dataclass
 
 NIGHT_START = time(23)
@@ -175,8 +176,8 @@ class Person:
                 return True
             case "discharging":
                 return False
-            case _:  # pyright: ignore[reportUnnecessaryComparison]
-                raise ValueError(f"Unexpected entity state: {entity_state}")
+            case _:
+                assert_never(entity_state)
 
     def set_still_here_timer(self):
         if self.still_here_after_unplug_timer is None:

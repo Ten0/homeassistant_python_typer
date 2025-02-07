@@ -1,4 +1,5 @@
 from typing import Any, Iterable, Tuple
+import pydoc
 
 from .builder import HaptBuilder
 from .dataclasses import *
@@ -40,6 +41,10 @@ def service_function_body(
             builder=builder,
         )
 
+        sanitized_field_name = (
+            f"{field_name}_" if field_name in pydoc.Helper.keywords else field_name
+        )
+
         is_multiple = all(
             (
                 isinstance(v, dict) and v.get("multiple", False)
@@ -49,18 +54,16 @@ def service_function_body(
         required = field_data.get("required", False)
 
         if field_value_construction is None:
-            field_value_construction = field_name
+            field_value_construction = sanitized_field_name
         else:
             if is_multiple:
-                field_value_construction = f"[{field_value_construction.replace('#FIELD_NAME#', f'{field_name}_e')} for {field_name}_e in {field_name}]"
+                field_value_construction = f"[{field_value_construction.replace('#FIELD_NAME#', f'{field_name}_e')} for {field_name}_e in {sanitized_field_name}]"
             else:
                 field_value_construction = field_value_construction.replace(
-                    "#FIELD_NAME#", field_name
+                    "#FIELD_NAME#", sanitized_field_name
                 )
             if not required:
-                field_value_construction = (
-                    f"{field_value_construction} if {field_name} is not None else None"
-                )
+                field_value_construction = f"{field_value_construction} if {sanitized_field_name} is not None else None"
 
         if is_multiple:
             field_type_and_default = f"list[{field_type_and_default}]"
@@ -72,11 +75,11 @@ def service_function_body(
             service_function_body += f"""
                     *,"""
         service_function_body += f"""
-                    {field_name}: {field_type_and_default},"""
+                    {sanitized_field_name}: {field_type_and_default},"""
         service_data_dict += f"""
                             "{field_name}": {field_value_construction},"""
         parameters_doc += f"""
-                    `{field_name}` (`{field_type_and_default}`{"" if required else ", optional"})"""
+                    `{sanitized_field_name}` (`{field_type_and_default}`{"" if required else ", optional"})"""
         description = field_data.get("description", field_data.get("name", ""))
         if description:
             parameters_doc += f"""

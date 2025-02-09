@@ -63,6 +63,8 @@ def state_type(
         else:
             return_type = "int | float"
             cast = "hapth.int_or_float"
+    elif entity_id.startswith("select.") and "options" in entity_attributes:
+        return_type, doc = enum_type_and_doc(entity_attributes["options"], builder)
     elif "device_class" in entity_attributes:
         device_class = entity_attributes["device_class"]
         match device_class:
@@ -70,12 +72,9 @@ def state_type(
             case "enum":
                 # I'm not 100% confident that this can't also return "unknown" (or "unavailable" for e.g. lights),
                 # might need to add that to the list (in which case that would probably be None)
-                options = entity_attributes["options"]
-                return_type = builder.enum_type("state", "State", options)
-                line_break = "\n"  # python 3.11 support
-                doc = f"""
-                        Possible states:
-                        - {f'{line_break}                        - '.join((f"`{option}`" for option in options))}"""
+                return_type, doc = enum_type_and_doc(
+                    entity_attributes["options"], builder
+                )
             case (
                 "distance"
                 | "temperature"
@@ -109,3 +108,15 @@ def state_type(
         # At least print out the doc
         return_type = "Any"
     return return_type, cast, doc
+
+
+def enum_type_and_doc(
+    options: list[str],
+    builder: HaptBuilder,
+):
+    return_type = builder.enum_type("state", "State", options)
+    line_break = "\n"  # python 3.11 support
+    doc = f"""
+                        Possible states:
+                        - {f'{line_break}                        - '.join((f"`{option}`" for option in options))}"""
+    return return_type, doc

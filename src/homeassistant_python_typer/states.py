@@ -106,7 +106,7 @@ def state_type(
                         - Unit: `{entity_attributes['unit_of_measurement']}`"""
     if doc != "" and return_type is None:
         # At least print out the doc
-        return_type = "Any"
+        return_type = "str"
     return return_type, cast, doc
 
 

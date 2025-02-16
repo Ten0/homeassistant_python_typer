@@ -52,11 +52,6 @@ def state_type(
     cast = None
     doc: str = ""
 
-    def is_int(value: Any) -> bool:
-        return isinstance(value, int) or (
-            isinstance(value, float) and value.is_integer()
-        )
-
     if entity_id.startswith("counter."):
         if (
             "step" in entity_attributes
@@ -70,12 +65,7 @@ def state_type(
             return_type = "int | float"
             cast = "hapth.int_or_float"
     elif entity_id.startswith("number."):
-        if (
-            "step" in entity_attributes
-            and is_int(entity_attributes["step"])
-            and "min" in entity_attributes
-            and is_int(entity_attributes["min"])
-        ):
+        if number_entity_is_int(entity_attributes):
             return_type = "int"
             cast = "hapth.checked_int"
         else:
@@ -146,3 +136,16 @@ def enum_type_and_doc(
                         Possible states:
                         - {f'{line_break}                        - '.join((f"`{option}`" for option in options))}"""
     return return_type, doc
+
+
+def number_entity_is_int(entity_attributes: dict[str, Any]) -> bool:
+    return (
+        "step" in entity_attributes
+        and is_int(entity_attributes["step"])
+        and "min" in entity_attributes
+        and is_int(entity_attributes["min"])
+    )
+
+
+def is_int(value: Any) -> bool:
+    return isinstance(value, int) or (isinstance(value, float) and value.is_integer())

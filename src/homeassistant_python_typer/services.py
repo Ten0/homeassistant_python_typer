@@ -1,6 +1,7 @@
 from typing import Any, Iterable, Tuple
 import pydoc
 
+from .states import number_entity_is_int
 from .builder import HaptBuilder
 from .dataclasses import *
 
@@ -152,6 +153,7 @@ def choose_field_type(
         map(lambda v: v == "object", selector)
     )  # unspecified type
     if "text" in selector:
+        # enums
         if (
             entity_attributes_if_entity is not None
             and service.domain == "select"
@@ -163,6 +165,21 @@ def choose_field_type(
                 ),
                 None,
             )
+
+        # Override of number.set_value() (essentially set_state) which takes a string in HA's API, despite it being
+        # a number. This is very impractical...
+        if (
+            service.domain == "number"
+            and service.name == "set_value"
+            and field_name == "value"
+        ):
+            input_type = "int | float"
+            if entity_attributes_if_entity is not None and number_entity_is_int(
+                entity_attributes_if_entity
+            ):
+                input_type = "int"
+            return input_type, "str(#FIELD_NAME#)"
+
         return "str", None
     elif "number" in selector:
         number = selector["number"]
@@ -195,7 +212,7 @@ def choose_field_type(
     ):
         return (
             "Tuple[int, int, int] | list[int] | str",
-            f"hapth.rgb_color(#FIELD_NAME#)",
+            "hapth.rgb_color(#FIELD_NAME#)",
         )
     elif "color_temp" in selector:
         return "int", None

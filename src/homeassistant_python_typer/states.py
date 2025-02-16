@@ -51,12 +51,30 @@ def state_type(
     return_type: str | None = None
     cast = None
     doc: str = ""
+
+    def is_int(value: Any) -> bool:
+        return isinstance(value, int) or (
+            isinstance(value, float) and value.is_integer()
+        )
+
     if entity_id.startswith("counter."):
         if (
             "step" in entity_attributes
+            and is_int(entity_attributes["step"])
             and "initial" in entity_attributes
-            and isinstance(entity_attributes["step"], int)
-            and isinstance(entity_attributes["initial"], int)
+            and is_int(entity_attributes["initial"])
+        ):
+            return_type = "int"
+            cast = "int"
+        else:
+            return_type = "int | float"
+            cast = "hapth.int_or_float"
+    elif entity_id.startswith("number."):
+        if (
+            "step" in entity_attributes
+            and is_int(entity_attributes["step"])
+            and "min" in entity_attributes
+            and is_int(entity_attributes["min"])
         ):
             return_type = "int"
             cast = "int"

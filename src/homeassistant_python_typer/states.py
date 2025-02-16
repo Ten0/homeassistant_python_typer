@@ -65,7 +65,7 @@ def state_type(
             and is_int(entity_attributes["initial"])
         ):
             return_type = "int"
-            cast = "int"
+            cast = "hapth.checked_int"
         else:
             return_type = "int | float"
             cast = "hapth.int_or_float"
@@ -77,12 +77,19 @@ def state_type(
             and is_int(entity_attributes["min"])
         ):
             return_type = "int"
-            cast = "int"
+            cast = "hapth.checked_int"
         else:
             return_type = "int | float"
             cast = "hapth.int_or_float"
     elif entity_id.startswith("select.") and "options" in entity_attributes:
         return_type, doc = enum_type_and_doc(entity_attributes["options"], builder)
+    elif any(
+        entity_id.startswith(prefix)
+        for prefix in ["light.", "binary_sensor.", "input_boolean.", "switch."]
+    ):
+        return_type = "hapth.OnOff"
+        doc += f"""
+                    - Returns: `on`/`off`: The state of the entity"""
     elif "device_class" in entity_attributes:
         device_class = entity_attributes["device_class"]
         match device_class:
@@ -115,15 +122,16 @@ def state_type(
                 print(
                     f"Warning: Unknown device class '{device_class}' for entity '{entity_id}'"
                 )
-    if doc == "":
-        if "device_class" in entity_attributes:
-            doc += f"""
-                        - Device class: `{entity_attributes["device_class"]}`"""
-        if "unit_of_measurement" in entity_attributes:
-            doc += f"""
-                        - Unit: `{entity_attributes['unit_of_measurement']}`"""
-    if doc != "" and return_type is None:
-        # At least print out the doc
+
+    if "device_class" in entity_attributes:
+        doc += f"""
+                    - Device class: `{entity_attributes["device_class"]}`"""
+    if "unit_of_measurement" in entity_attributes:
+        doc += f"""
+                    - Unit: `{entity_attributes['unit_of_measurement']}`"""
+
+    if return_type is None:
+        # At least print out the doc and specify that states are always str unless overridden above
         return_type = "str"
     return return_type, cast, doc
 

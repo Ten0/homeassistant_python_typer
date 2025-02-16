@@ -365,6 +365,16 @@ def int_or_float(s: str) -> int | float:
     else:
         return float(s)
 
+def checked_int(s: str) -> int:
+    if "." not in s:
+        return int(s)
+    else:
+        f = float(s)
+        if f.is_integer():
+            return int(f)
+        else:
+            raise ValueError(f"Value {s} should be an integer but isn't")
+
 
 class OnOffState(Entity):
     """
@@ -380,7 +390,7 @@ class OnOffState(Entity):
         Retrieve the state of the entity.
 
         Returns:
-            "on"/"off": The state of the entity.
+            `on`/`off`: The state of the entity.
         """
         return super().get_state_repeatable_read()
 

@@ -177,7 +177,6 @@ class Entity:
                 self.hapt.state_cache[self.entity_id] = entity_state
                 return entity_state
         else:
-            entity_state: dict[str, Any]
             if self.entity_id in self.hapt.full_cache:
                 entity_state = self.hapt.full_cache[self.entity_id]
             else:
@@ -364,6 +363,7 @@ def int_or_float(s: str) -> int | float:
         return int(s)
     else:
         return float(s)
+
 
 def checked_int(s: str) -> int:
     if "." not in s:

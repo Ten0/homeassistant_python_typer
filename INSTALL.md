@@ -108,7 +108,7 @@ This means that if you're running via the VSCode addon directly on HomeAssistant
 
 You may want either:
 - To disable VSCode auto-save in its settings (only manually save with Ctrl+S)
-- To disable appdaemon auto-reload by setting `production: true` in `appdaemon.yaml`, and reload the addon when you want to test new app versions (slower)
+- To disable appdaemon auto-reload by setting `production_mode: true` in `appdaemon.yaml`, and reload the addon when you want to test new app versions (slower)
 
 Note that in any case, you may need to reload the appdaemon addon after editing files other than a single-app file (in particular after refreshing `hapt.py`).
 
@@ -128,19 +128,9 @@ appdaemon:
 Then we will register our first app.
 Update your `apps.yaml` like so:
 ```yaml
-homeassistant_python_typer_helpers:
-  module: homeassistant_python_typer_helpers
-  global: true
-hapt:
-  module: hapt
-  global: true
-  dependencies: homeassistant_python_typer_helpers
-
 my_first_sensor_light:
   module: my_first_sensor_light
   class: HallwaySensorLights
-  dependencies:
-    - hapt
 ```
 
 More details on the `apps.yaml` structure and options [in the AppDaemon documentation](https://appdaemon.readthedocs.io/en/latest/APPGUIDE.html#configuration-of-apps).

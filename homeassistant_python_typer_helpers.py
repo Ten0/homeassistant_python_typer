@@ -225,7 +225,7 @@ class Entity:
         timeout_s: int | None = None,
         *args: FunctionArgsGeneric.args,
         **kwargs: FunctionArgsGeneric.kwargs,
-    ) -> None:
+    ) -> str:
         """
         Listen to state changes of the entity.
 
@@ -299,7 +299,9 @@ class Entity:
             # I don't think there's a use-case for anything else...
             listen_kwargs["immediate"] = True
 
-        self.hapt.adapi.listen_state(callback_wrapper, self.entity_id, **listen_kwargs)
+        return self.hapt.adapi.listen_state(
+            callback_wrapper, self.entity_id, **listen_kwargs
+        )
 
     def last_changed(self) -> datetime:
         """

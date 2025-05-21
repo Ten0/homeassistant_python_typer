@@ -27,12 +27,14 @@ class HaptSharedState:
 
     state_cache: dict[str, Any]
     full_cache: dict[str, Any]
+    callback_counter: int
 
     def __init__(self, ad: ADBase):
         self.ad = ad
         self.adapi = ad.get_ad_api()
         self.state_cache = {}
         self.full_cache = {}
+        self.callback_counter = -1
 
         # Unfortunately we need those for the sync_decorator to work
         self.name = self.ad.name
@@ -40,13 +42,21 @@ class HaptSharedState:
         self.AD = self.ad.AD
         "AppDaemon instance"
 
-    def clear_caches(self):
+    def check_caches(self):
         """
-        Clear repeatable read caches. This is called by event handlers, at the beginning of each event handling,
+        Clear repeatable read caches if necessary. This is called when fetching state
         since time has passed so the state of entities may have changed.
         """
-        self.state_cache.clear()
-        self.full_cache.clear()
+        new_callback_counter = self.adapi.callback_counter
+        if self.callback_counter != new_callback_counter:
+            self.adapi.log(
+                f"HAPT: Clearing repeatable read caches for {self.name} because callback counter"
+                f" changed from {self.callback_counter} to {new_callback_counter}",
+                level="DEBUG",
+            )
+            self.state_cache.clear()
+            self.full_cache.clear()
+            self.callback_counter = new_callback_counter
 
     @sync_decorator
     async def call(
@@ -71,10 +81,6 @@ class HaptSharedState:
         # Remove any None values from the data: AFAIK HomeAssistant doesn't need actually specified but None values
         # If that were the case we'd need a different placeholder types for None compared to unspecified.
         data = {k: v for k, v in data.items() if v is not None}
-
-        # make it so that potential error messages would tell which app the call is from
-        # (this is used directly by call_service)
-        data["__name"] = self.ad.name
 
         return await self.AD.services.call_service(
             namespace or self.ad.namespace, domain, service, data
@@ -267,8 +273,11 @@ class Entity:
             new: Any,
             **cb_args: dict[str, object],
         ) -> None:
-            self.hapt.clear_caches()
             assert self.entity_id == entity
+
+            self.hapt.check_caches()  # This should always clear caches because we are handling a callback, so assert it
+            assert len(self.hapt.state_cache) == 0 and len(self.hapt.full_cache) == 0
+
             if attribute is None:
                 self.hapt.state_cache[self.entity_id] = new
             elif attribute == "all":

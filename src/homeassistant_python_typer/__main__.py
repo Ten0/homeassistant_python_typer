@@ -149,7 +149,7 @@ def main():
     class HomeAssistant:
         def __init__(self, ad: ADBase):
             hapt = hapth.HaptSharedState(ad)
-            self.hapt = hapt # So that users can call clear_caches() if writing appdaemon handlers directly
+            self.hapt = hapt
 {domains_init_body}
     """
 

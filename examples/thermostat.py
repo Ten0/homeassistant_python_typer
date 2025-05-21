@@ -75,7 +75,6 @@ class ThermostatControl(hass.Hass):
 
     def appdaemon_native_trigger(self, cb_args: dict[str, object]):
         "Useful for direct AppDaemon triggers (e.g. run_daily or run_in)"
-        self.ha.hapt.clear_caches()  # Necessary with native appdaemon triggers
         self.check()
 
     def check(self):

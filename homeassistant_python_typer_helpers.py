@@ -10,7 +10,7 @@ from typing import (
     assert_never,
 )
 from appdaemon.adbase import ADBase
-from appdaemon.utils import sync_wrapper
+from appdaemon.utils import sync_decorator
 
 OnOff: TypeAlias = Literal["on", "off"]
 
@@ -34,7 +34,7 @@ class HaptSharedState:
         self.state_cache = {}
         self.full_cache = {}
 
-        # Unfortunately we need those for the sync_wrapper to work
+        # Unfortunately we need those for the sync_decorator to work
         self.name = self.ad.name
         "Name of the appdaemon app that this Entity is linked to - not a property of the entity itself"
         self.AD = self.ad.AD
@@ -48,7 +48,7 @@ class HaptSharedState:
         self.state_cache.clear()
         self.full_cache.clear()
 
-    @sync_wrapper
+    @sync_decorator
     async def call(
         self,
         domain: str,
@@ -96,7 +96,7 @@ class Entity:
         self.entity_id = entity_id
         self.namespace = namespace or self.hapt.ad.namespace
 
-        # Unfortunately we need those for the sync_wrapper to work
+        # Unfortunately we need those for the sync_decorator to work
         self.name = self.hapt.ad.name
         "Name of the appdaemon app that this Entity is linked to - not a property of the entity itself"
         self.AD = self.hapt.ad.AD
@@ -124,7 +124,7 @@ class Entity:
 
     # We will eventually try typing this as well but there's no API to know for sure what can be in there this time
     # so for now we'll skip it
-    @sync_wrapper
+    @sync_decorator
     async def query_state(
         self,
         attribute: str | None = None,
@@ -265,7 +265,7 @@ class Entity:
             attribute: str | None,
             old: Any,
             new: Any,
-            cb_args: dict[str, object],
+            **cb_args: dict[str, object],
         ) -> None:
             self.hapt.clear_caches()
             assert self.entity_id == entity
@@ -339,7 +339,7 @@ class Domain:
 
 
 def rgb_color(
-    rgb_array_or_str: list[int] | tuple[int, int, int] | str
+    rgb_array_or_str: list[int] | tuple[int, int, int] | str,
 ) -> tuple[int, int, int]:
     if isinstance(rgb_array_or_str, str):
         # Convert from hashtag hex representation to the RGB tuple

@@ -80,6 +80,12 @@ def state_type(
         return_type = "hapth.OnOff"
         doc += f"""
                     - Returns: `on`/`off`: The state of the entity"""
+    elif (
+        "state_class" in entity_attributes
+        and entity_attributes["state_class"] == "measurement"
+    ):
+        return_type = "int | float"
+        cast = "hapth.int_or_float"
     elif "device_class" in entity_attributes:
         device_class = entity_attributes["device_class"]
         match device_class:

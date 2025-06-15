@@ -10,7 +10,7 @@ from typing import (
     assert_never,
 )
 from appdaemon.adbase import ADBase
-from appdaemon.utils import sync_wrapper
+from appdaemon.utils import sync_decorator
 
 OnOff: TypeAlias = Literal["on", "off"]
 
@@ -27,28 +27,38 @@ class HaptSharedState:
 
     state_cache: dict[str, Any]
     full_cache: dict[str, Any]
+    callback_counter: int
 
     def __init__(self, ad: ADBase):
         self.ad = ad
         self.adapi = ad.get_ad_api()
         self.state_cache = {}
         self.full_cache = {}
+        self.callback_counter = -1
 
-        # Unfortunately we need those for the sync_wrapper to work
+        # Unfortunately we need those for the sync_decorator to work
         self.name = self.ad.name
         "Name of the appdaemon app that this Entity is linked to - not a property of the entity itself"
         self.AD = self.ad.AD
         "AppDaemon instance"
 
-    def clear_caches(self):
+    def check_caches(self):
         """
-        Clear repeatable read caches. This is called by event handlers, at the beginning of each event handling,
+        Clear repeatable read caches if necessary. This is called when fetching state
         since time has passed so the state of entities may have changed.
         """
-        self.state_cache.clear()
-        self.full_cache.clear()
+        new_callback_counter = self.adapi.callback_counter
+        if self.callback_counter != new_callback_counter:
+            self.adapi.log(
+                f"HAPT: Clearing repeatable read caches for {self.name} because callback counter"
+                f" changed from {self.callback_counter} to {new_callback_counter}",
+                level="DEBUG",
+            )
+            self.state_cache.clear()
+            self.full_cache.clear()
+            self.callback_counter = new_callback_counter
 
-    @sync_wrapper
+    @sync_decorator
     async def call(
         self,
         domain: str,
@@ -72,10 +82,6 @@ class HaptSharedState:
         # If that were the case we'd need a different placeholder types for None compared to unspecified.
         data = {k: v for k, v in data.items() if v is not None}
 
-        # make it so that potential error messages would tell which app the call is from
-        # (this is used directly by call_service)
-        data["__name"] = self.ad.name
-
         return await self.AD.services.call_service(
             namespace or self.ad.namespace, domain, service, data
         )
@@ -96,7 +102,7 @@ class Entity:
         self.entity_id = entity_id
         self.namespace = namespace or self.hapt.ad.namespace
 
-        # Unfortunately we need those for the sync_wrapper to work
+        # Unfortunately we need those for the sync_decorator to work
         self.name = self.hapt.ad.name
         "Name of the appdaemon app that this Entity is linked to - not a property of the entity itself"
         self.AD = self.hapt.ad.AD
@@ -124,7 +130,7 @@ class Entity:
 
     # We will eventually try typing this as well but there's no API to know for sure what can be in there this time
     # so for now we'll skip it
-    @sync_wrapper
+    @sync_decorator
     async def query_state(
         self,
         attribute: str | None = None,
@@ -219,45 +225,53 @@ class Entity:
         timeout_s: int | None = None,
         *args: FunctionArgsGeneric.args,
         **kwargs: FunctionArgsGeneric.kwargs,
-    ) -> None:
+    ) -> str:
         """
         Listen to state changes of the entity.
 
+        The callback can take in extra arguments that are passed to this function, and will be passed as-is.
+        It does not take in entity_id, attribute, etc... as arguments.
+
         Args:
-            callback (Callable): The callback to call when the state changes.
-            attribute (str): The attribute to listen to. If None, the state of the entity is listened to.
-                If `all`, listen for change on any attribute.
+            callback: Function that will be called when the callback gets triggered.
+            new (str | Callable[[Any], bool], optional): If given, the callback will only be invoked if the state of
+                the selected attribute (usually state) matches this value in the new data. The data type is dependent on
+                the specific entity and attribute. Values that look like ints or floats are often actually strings, so
+                be careful when comparing them. The ``self.get_state()`` method is useful for checking the data type of
+                the desired attribute. If ``new`` is a callable (lambda, function, etc), then it will be called with
+                the new state, and the callback will only be invoked if the callable returns ``True``.
+            old (str | Callable[[Any], bool], optional): If given, the callback will only be invoked if the selected
+                attribute (usually state) changed from this value in the new data. The data type is dependent on the
+                specific entity and attribute. Values that look like ints or floats are often actually strings, so be
+                careful when comparing them. The ``self.get_state()`` method is useful for checking the data type of
+                the desired attribute. If ``old`` is a callable (lambda, function, etc), then it will be called with
+                the old state, and the callback will only be invoked if the callable returns ``True``.
+            duration_s (str | int | float | timedelta, optional): If supplied, the callback will not be invoked unless the
+                desired state is maintained for that amount of time. This requires that a specific attribute is
+                specified (or the default of ``state`` is used), and should be used in conjunction with either or both
+                of the ``new`` and ``old`` parameters. When the callback is called, it is supplied with the values of
+                ``entity``, ``attr``, ``old``, and ``new`` that were current at the time the actual event occurred,
+                since the assumption is that none of them have changed in the intervening period.
 
-            new (optional): If ``new`` is supplied as a parameter, callbacks will only be made if the
-                state of the selected attribute (usually state) in the new state match the value
-                of ``new``. The parameter type is defined by the namespace or plugin that is responsible
-                for the entity. If it looks like a float, list, or dictionary, it may actually be a string.
-                If ``new`` is a callable (lambda, function, etc), then it will be invoked with the new state,
-                and if it returns ``True``, it will be considered to match.
-            old (optional): If ``old`` is supplied as a parameter, callbacks will only be made if the
-                state of the selected attribute (usually state) in the old state match the value
-                of ``old``. The same caveats on types for the ``new`` parameter apply to this parameter.
-                If ``old`` is a callable (lambda, function, etc), then it will be invoked with the old state,
-                and if it returns a ``True``, it will be considered to match.
+                If you use ``duration`` when listening for an entire device type rather than a specific entity, or for
+                all state changes, you may get unpredictable results, so it is recommended that this parameter is only
+                used in conjunction with the state of specific entities.
+            attribute (str, optional): Optional name of an attribute to use for the new/old checks. If not specified,
+                the default behavior is to use the value of ``state``. Using the value ``all`` will cause the callback
+                to get triggered for any change in state, and the new/old values used for the callback will be the
+                entire state dict rather than the individual value of an attribute.
+            timeout_s (str | int | float | timedelta, optional): If given, the callback will be automatically removed
+                after that amount of time. If activity for the listened state has occurred that would trigger a
+                duration timer, the duration timer will still be fired even though the callback has been removed.
+            **kwargs: Arbitrary keyword parameters to be provided to the callback function when it is triggered.
 
-            duration_s (int, optional): If ``duration`` is supplied as a parameter, the callback will not
-                fire unless the state listened for is maintained for that number of seconds. This
-                requires that a specific attribute is specified (or the default of ``state`` is used),
-                and should be used in conjunction with the ``old`` or ``new`` parameters, or both. When
-                the callback is called, it is supplied with the values of ``entity``, ``attr``, ``old``,
-                and ``new`` that were current at the time the actual event occurred, since the assumption
-                is that none of them have changed in the intervening period.
+        Note:
+            The ``old`` and ``new`` args can be used singly or together.
 
-                If you use ``duration`` when listening for an entire device type rather than a specific
-                entity, or for all state changes, you may get unpredictable results, so it is recommended
-                that this parameter is only used in conjunction with the state of specific entities.
-
-            timeout_s (int, optional): If ``timeout`` is supplied as a parameter, the callback will be created as normal,
-                 but after ``timeout`` seconds, the callback will be removed. If activity for the listened state has
-                 occurred that would trigger a duration timer, the duration timer will still be fired even though the
-                 callback has been deleted.
-            *args: Additional arguments to pass to the callback.
-            **kwargs: Additional keyword arguments to pass to the callback.
+        Returns:
+            A string that uniquely identifies the callback and can be used to cancel it later if necessary. Since
+            variables created within object methods are local to the function they are created in, it's recommended to
+            store the handles in the app's instance variables, e.g. ``self.handle``.
         """
 
         def callback_wrapper(
@@ -265,10 +279,13 @@ class Entity:
             attribute: str | None,
             old: Any,
             new: Any,
-            cb_args: dict[str, object],
+            **cb_args: dict[str, object],
         ) -> None:
-            self.hapt.clear_caches()
             assert self.entity_id == entity
+
+            self.hapt.check_caches()  # This should always clear caches because we are handling a callback, so assert it
+            assert len(self.hapt.state_cache) == 0 and len(self.hapt.full_cache) == 0
+
             if attribute is None:
                 self.hapt.state_cache[self.entity_id] = new
             elif attribute == "all":
@@ -276,21 +293,19 @@ class Entity:
                 self.hapt.state_cache[self.entity_id] = new["state"]
             callback(*args, **kwargs)
 
-        listen_kwargs: dict[str, Any] = {}
-        for kwarg_name, kwarg_value in {
-            "new": new,
-            "old": old,
-            "duration": duration_s,
-            "timeout": timeout_s,
-            "attribute": attribute,
-        }.items():
-            if kwarg_value is not None:
-                listen_kwargs[kwarg_name] = kwarg_value
-        if "duration" in listen_kwargs:
-            # I don't think there's a use-case for anything else...
-            listen_kwargs["immediate"] = True
-
-        self.hapt.adapi.listen_state(callback_wrapper, self.entity_id, **listen_kwargs)
+        return self.hapt.adapi.listen_state(
+            callback_wrapper,
+            self.entity_id,
+            new=new,
+            old=old,
+            duration=duration_s,
+            timeout=timeout_s,
+            attribute=attribute,
+            immediate=(
+                # I don't think there's a use-case for anything else...
+                (duration_s is not None)
+            ),
+        )
 
     def last_changed(self) -> datetime:
         """
@@ -339,7 +354,7 @@ class Domain:
 
 
 def rgb_color(
-    rgb_array_or_str: list[int] | tuple[int, int, int] | str
+    rgb_array_or_str: list[int] | tuple[int, int, int] | str,
 ) -> tuple[int, int, int]:
     if isinstance(rgb_array_or_str, str):
         # Convert from hashtag hex representation to the RGB tuple

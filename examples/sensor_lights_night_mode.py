@@ -36,12 +36,10 @@ class HallwaySensorLights(hass.Hass):
         self.log("Initialized HallwaySensorLights")
 
     def timer_trigger(self, cb_args: dict[str, object]):
-        self.ha.hapt.clear_caches()  # Necessary with native appdaemon triggers
         self.timer = None
         self.set_light()
 
     def check_light_trigger(self, cb_args: dict[str, object]):
-        self.ha.hapt.clear_caches()  # Necessary with native appdaemon triggers
         self.set_light()
 
     def check_sensor(self):

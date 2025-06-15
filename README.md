@@ -191,15 +191,7 @@ Such insidious bugs are prevented by this repeatable read feature, provided in t
 
 ### What to be careful about
 
-The downside of this is that for correctness, it's required to manually clear the state cache (`self.ha.hapt.clear_caches()`) **if using native appdaemon callbacks**. [Example](https://github.com/Ten0/homeassistant_python_typer/blob/be354da32c4a7c6f0911058943fc40c6fb860cd4/examples/thermostat.py#L75-L78).
-
-This is important because if forgotten, one may be reading the previous entities states when handling a new event.
-
-Typed listen_state APIs provided by `homeassistant_python_typer` already clear the caches as they receive an event, so they don't have this quirk.
-
-Despite this downside, it is estimated to be a better compromise than not having this feature because assuming that you ultimately want your automations to always work, it easier to not forget this than to consider all potential subtle races such as the one described above.
-
-Ultimately this project will probably either find a way to identify event handling jumps automatically to clear caches automatically, or provide overlays for more appdaemon APIs that would also perform implicit cache clearing where appropriate.
+Leave AppDaemon's threading options to their default values: this feature is incompatible with disabling [app pinning](https://appdaemon.readthedocs.io/en/4.5.0/APPGUIDE.html#appdaemon-and-threading) as races between callbacks would break repeatable read guarantees.
 
 # 💬 Community & Feedback
 

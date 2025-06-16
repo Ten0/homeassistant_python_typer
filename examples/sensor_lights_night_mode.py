@@ -60,7 +60,9 @@ class HallwaySensorLights(hass.Hass):
                         brightness=46, xy_color=(0.692, 0.295), transition=0.1
                     )
                 else:
-                    self.light.turn_on(brightness=255, kelvin=2202, transition=0.1)
+                    self.light.turn_on(
+                        brightness=255, color_temp_kelvin=2202, transition=0.1
+                    )
                 self.gave_order_to_turn_off = False
         else:
             if self.light.is_on():

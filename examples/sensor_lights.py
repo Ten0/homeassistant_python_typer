@@ -41,7 +41,9 @@ class HallwaySensorLights(hass.Hass):
         should_be_on = self.sensor.is_on() or self.timer is not None
         if should_be_on:
             if not self.light.is_on() or self.gave_order_to_turn_off:
-                self.light.turn_on(brightness=255, kelvin=2202, transition=0.1)
+                self.light.turn_on(
+                    brightness=255, color_temp_kelvin=2202, transition=0.1
+                )
         else:
             if self.light.is_on():
                 self.light.turn_off(transition=3)

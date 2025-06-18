@@ -455,7 +455,7 @@ class Climate(Entity):
         Returns:
             float: The target temperature of the thermostat.
         """
-        return self.get_state_repeatable_read(attribute="temperature")
+        return float(self.get_state_repeatable_read(attribute="temperature"))
 
     def current_temperature(self) -> float:
         """
@@ -464,4 +464,4 @@ class Climate(Entity):
         Returns:
             float: The current temperature of the thermostat.
         """
-        return self.get_state_repeatable_read(attribute="current_temperature")
+        return float(self.get_state_repeatable_read(attribute="current_temperature"))

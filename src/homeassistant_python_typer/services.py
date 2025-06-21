@@ -22,7 +22,7 @@ def service_function_body(
             fields[advanced_field] = advanced_field_data
 
     service_function_body = f"""
-                async def {service.name}(
+                def {service.name}(
                     self,"""
     service_data_dict = ""
     parameters_doc = ""
@@ -99,7 +99,7 @@ def service_function_body(
                     Parameters
                     ----------{parameters_doc}
                     \"""
-                    await self{"._hapt" if entity_attributes_if_entity is None else ""}.call(
+                    self{"._hapt" if entity_attributes_if_entity is None else ""}.call(
                         "{service.domain}",
                         "{service.name}",
                         {{{service_data_dict}}},

@@ -11,7 +11,6 @@ def infer_entities(
     builder: HaptBuilder,
     hm_entities: Any,
     hm_services: Any,
-    generate_as_async: bool,
 ) -> None:
     per_entity_domain_services_ = per_entity_domain_services(hm_services=hm_services)
     for entity in hm_entities:
@@ -22,17 +21,14 @@ def infer_entities(
         superclass = "Entity"
         match domain:
             case "light" | "binary_sensor" | "input_boolean" | "switch":
-                superclass = (
-                    "OnOffState" if not generate_as_async else "OnOffStateAsync"
-                )
+                superclass = "OnOffState"
             case "input_button":
-                superclass = (
-                    "InputButton" if not generate_as_async else "InputButtonAsync"
-                )
-            case (
-                "climate"
-            ) if "temperature" in entity_attributes and "current_temperature" in entity_attributes:
-                superclass = "Climate" if not generate_as_async else "ClimateAsync"
+                superclass = "InputButton"
+            case "climate" if (
+                "temperature" in entity_attributes
+                and "current_temperature" in entity_attributes
+            ):
+                superclass = "Climate"
             case _:
                 # match can't be expressions in Python :(
                 pass

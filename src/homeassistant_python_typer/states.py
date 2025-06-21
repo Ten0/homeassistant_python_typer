@@ -16,7 +16,7 @@ def infer_state_superclass(
                 \"""
                 Superclass for entity state that holds.
                 \"""
-                async def state(
+                def state(
                     self,
                 ) -> {return_type}:
                     \"""
@@ -25,7 +25,7 @@ def infer_state_superclass(
                     Returns:
                         The state of the entity.{doc}
                     \"""
-                    return await {'' if cast is None else f'{cast}('}super().get_state_repeatable_read(){'' if cast is None else ')'}"""
+                    return {'' if cast is None else f'{cast}('}super().get_state_repeatable_read(){'' if cast is None else ')'}"""
         if superclass_body in builder.classes_per_body:
             extra_superclasses.append(builder.classes_per_body[superclass_body].name)
         else:

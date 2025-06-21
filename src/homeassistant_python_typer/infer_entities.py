@@ -3,7 +3,7 @@ from typing import Any
 from .builder import HaptBuilder
 from .services import infer_services_superclasses, per_entity_domain_services
 from .states import infer_state_superclass
-from .helpers import retab
+from .helpers import retab, sanitize_for_ident
 from .dataclasses import *
 
 
@@ -52,7 +52,7 @@ def infer_entities(
             "friendly_name", None
         )
 
-        class_name = f"entity__{domain}__{entity_name}"
+        class_name = f"entity__{domain}__{sanitize_for_ident(entity_name)}"
         entity_body = retab(
             f"""
             class {class_name}({superclasses}):

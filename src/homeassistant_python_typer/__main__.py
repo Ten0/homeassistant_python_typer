@@ -103,7 +103,7 @@ def main():
             )
             domains_classes_body += (
                 tab(
-                    f"{entity.name}: {entity.type_name}{entity_docstring}",
+                    f"{sanitize_ident(entity.name)}: {entity.type_name}{entity_docstring}",
                     3,
                 )
                 + "\n\n"

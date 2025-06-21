@@ -47,8 +47,6 @@ def main():
     hm_entities = client.get("states")
     hm_services = client.get("services")
 
-    generate_as_async = "--async" in sys.argv
-
     if "-d" in sys.argv:
         # For debugging
         with open("entities.json", "w") as entities_file:
@@ -62,7 +60,6 @@ def main():
         builder=builder,
         hm_entities=hm_entities,
         hm_services=hm_services,
-        generate_as_async=generate_as_async,
     )
     infer_headless_services(builder, hm_services)
 
@@ -156,9 +153,6 @@ def main():
     out = remove_common_indent_levels(out).strip("\n")
     if not out.endswith("\n"):
         out += "\n"
-
-    if not generate_as_async:
-        out = out.replace("async def", "def").replace("await ", "")
 
     with open(output_filename, "w") as output_file:
         output_file.write(out)

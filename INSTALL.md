@@ -4,7 +4,7 @@
 
 - [🚂 AppDaemon](#-appdaemon)
 - [📜 Editor](#-editor)
-  - [Install Python extension](#install-python-extension)
+  - [Install Python extensions](#install-python-extensions)
   - [Python configuration \& venv](#python-configuration--venv)
   - [Install and run homeassistant\_python\_typer](#install-and-run-homeassistant_python_typer)
   - [Typer configuration](#typer-configuration)
@@ -47,10 +47,11 @@ You may use VSCode either:
    - Requires some resources on your HomeAssistant instance (~800M dedicated RAM)
    - I would still recommended to use `git` to save versions of your code (learn it by using a graphical git client such as VSCode + Git Graph extension), but you could also choose to rely only on Home Assistant backups.
 
-### Install Python extension
+### Install Python extensions
 
-- If you are using the VSCode addon of Home Assistant (or any other non-packed-by-microsoft flavor), [install](https://code.visualstudio.com/docs/editor/extension-marketplace#_browse-for-extensions) the [BasedPyright](https://open-vsx.org/extension/detachhead/basedpyright) extension.
-- If you are using the Microsoft-packed VSCode, you may [install](https://code.visualstudio.com/docs/editor/extension-marketplace#_browse-for-extensions) the [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) extension (which contains Pylance, which uses Pyright).
+- [Install](https://code.visualstudio.com/docs/editor/extension-marketplace#_browse-for-extensions) the [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) extension.
+- If you are using the Microsoft-packed VSCode, this pack contains Pylance, which uses Pyright, so you don't need an extra extension.
+- If you are instead using the VSCode addon of Home Assistant (or any other non-packed-by-microsoft flavor), [install](https://code.visualstudio.com/docs/editor/extension-marketplace#_browse-for-extensions) the [BasedPyright](https://open-vsx.org/extension/detachhead/basedpyright) extension.
 
 ### Python configuration & venv
 
@@ -60,7 +61,7 @@ We need to make appdaemon accessible to the type checker.
 2. Create a virtual environment in your VSCode workspace:
    - Press Ctrl+Shift+P (or Cmd+Shift+P on mac) to open the command palette (Ctrl+P then type `>` if that doesn't work)
    - Type `> Python: Select Interpreter`
-   - Click "Create virtual environment"
+   - Click "Create virtual environment", then select "Venv" and "/bin/python3"
    - Once that [completes](https://code.visualstudio.com/docs/python/environments#_using-the-create-environment-command), at the bottom right of the editor, if you have any `.py` file open, it should show `3.11.x ('.venv': venv)`
 3. Install appdaemon in the virtual env:
    - Press Ctrl+Shift+C to open a terminal
@@ -116,7 +117,7 @@ To some extent, this last issue can be avoided by [declaring Global Module Depen
 
 ## 🐣 First app
 
-For night/day/time and other similar features to work properly in appdaemon, update the `appdaemon.yaml` file with appropriate values for:
+For night/day/time and other similar features to work properly in appdaemon, update the `appdaemon.yaml` file with [appropriate values](https://appdaemon.readthedocs.io/en/latest/CONFIGURE.html#appdaemon) for:
 ```yaml
 appdaemon:
   latitude: 52.379189
@@ -124,6 +125,9 @@ appdaemon:
   elevation: 2
   time_zone: Europe/Amsterdam
 ```
+- [Latitude & longitude of your HA zones](https://my.home-assistant.io/redirect/zones/) (click the edit button on your "Home" zone)
+- [Altitude calculator](https://www.advancedconverter.com/map-tools/find-altitude-by-coordinates)
+- [Timezone list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List)
 
 Then we will register our first app.
 Update your `apps.yaml` like so:

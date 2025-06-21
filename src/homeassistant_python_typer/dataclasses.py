@@ -30,6 +30,7 @@ class ServiceEndpoint:
 class Domain:
     services: list[ServiceEndpoint]
     entities: list[DomainEntity]
+    entities_names: set[str]
 
 
 @dataclass

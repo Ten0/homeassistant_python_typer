@@ -13,7 +13,7 @@ def infer_headless_services(builder: HaptBuilder, hm_services: Any) -> None:
                 # This is a headless service, we can add it to the builder
                 if service_domain_name not in builder.domains:
                     builder.domains[service_domain_name] = Domain(
-                        entities=[], services=[]
+                        entities=[], services=[], entities_names=set()
                     )
                 domain = builder.domains[service_domain_name]
                 domain.services.append(
@@ -26,6 +26,7 @@ def infer_headless_services(builder: HaptBuilder, hm_services: Any) -> None:
                                 data=service_data,
                             ),
                             entity_attributes_if_entity=None,
+                            field_names_on_same_class=domain.entities_names,  # This relies on entities being added first
                         )
                     )
                 )

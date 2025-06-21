@@ -10,6 +10,7 @@ def service_function_body(
     builder: HaptBuilder,
     service: Service,
     entity_attributes_if_entity: dict[str, Any] | None,
+    field_names_on_same_class: set[str],
 ) -> str:
     fields: dict[str, Any] = service.data.get("fields", {})
 
@@ -21,8 +22,15 @@ def service_function_body(
         if advanced_field not in fields:
             fields[advanced_field] = advanced_field_data
 
+    # Avoid conflict with entity name (because they will both be defined on the same object)
+    function_name = (
+        service.name
+        if not service.name in field_names_on_same_class
+        else f"call_{service.name}"
+    )
+
     service_function_body = f"""
-                def {service.name}(
+                def {function_name}(
                     self,"""
     service_data_dict = ""
     parameters_doc = ""
@@ -121,6 +129,7 @@ def infer_services_superclasses(
             builder=builder,
             service=service,
             entity_attributes_if_entity=entity_attributes,
+            field_names_on_same_class=set(),
         )
 
         if superclass_body in builder.classes_per_body:

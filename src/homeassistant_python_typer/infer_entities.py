@@ -68,7 +68,9 @@ def infer_entities(
 
         entity_type_in_domain = class_name
         if domain not in builder.domains:
-            builder.domains[domain] = Domain(entities=[], services=[])
+            builder.domains[domain] = Domain(
+                entities=[], services=[], entities_names=set()
+            )
         builder.domains[domain].entities.append(
             DomainEntity(
                 name=entity_name,
@@ -76,3 +78,4 @@ def infer_entities(
                 friendly_name=entity_friendly_name,
             )
         )
+        builder.domains[domain].entities_names.add(entity_name)

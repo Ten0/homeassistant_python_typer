@@ -7,9 +7,11 @@
   - [Install Python extensions](#install-python-extensions)
   - [Python configuration \& venv](#python-configuration--venv)
   - [Install and run homeassistant\_python\_typer](#install-and-run-homeassistant_python_typer)
-  - [Typer configuration](#typer-configuration)
-  - [Note about auto-reload (for VSCode addon users)](#note-about-auto-reload-for-vscode-addon-users)
+  - [Typer and formatter configuration](#typer-and-formatter-configuration)
+  - [Other useful settings](#other-useful-settings)
 - [🐣 First app](#-first-app)
+- [Configuring Git](#configuring-git)
+  - [When using the VSCode addon directly on Home Assistant](#when-using-the-vscode-addon-directly-on-home-assistant)
 - [⚡️ Running directly on your computer](#️-running-directly-on-your-computer)
 
 
@@ -52,6 +54,7 @@ You may use VSCode either:
 - [Install](https://code.visualstudio.com/docs/editor/extension-marketplace#_browse-for-extensions) the [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) extension.
 - If you are using the Microsoft-packed VSCode, this pack contains Pylance, which uses Pyright, so you don't need an extra extension.
 - If you are instead using the VSCode addon of Home Assistant (or any other non-packed-by-microsoft flavor), [install](https://code.visualstudio.com/docs/editor/extension-marketplace#_browse-for-extensions) the [BasedPyright](https://open-vsx.org/extension/detachhead/basedpyright) extension.
+- Install the [Black Formatter](https://open-vsx.org/extension/ms-python/black-formatter) extension
 
 ### Python configuration & venv
 
@@ -66,6 +69,7 @@ We need to make appdaemon accessible to the type checker.
 3. Install appdaemon in the virtual env:
    - Press Ctrl+Shift+C to open a terminal
    - It should show `.venv` at the beginning of the prompt, to signify that it is running within the context of the virtual env that we have just created.
+     (If it doesn't, close the terminal with `Ctrl+D` then open it again.)
    - Type `pip install --upgrade appdaemon` in the VSCode terminal. It should complete without any error after some time.
      - (Note that this command may need to be re-run after appdaemon updates, to keep venv in sync with appdaemon addon version)
 
@@ -78,7 +82,7 @@ Press Ctrl+Shift+C (or call "Create a new terminal" from the command palette) in
 3. Run as described in [How it works](./README.md#-how-it-works) to generate the `apps/hapt.py` and `apps/homeassistant_python_typer_helpers.py` files.
    - Note that this command will need to be re-run if you have added/removed/updated entities in your Home Assistant and possibly after Home Assistant updates, to make everything known in the `hapt.py` file.
 
-### Typer configuration
+### Typer and formatter configuration
 
 To have the typer catch as many mistakes as possible right from your editor, you must configure the extension installed above with appropriate typing constraints in your appdaemon workspace.
 
@@ -89,7 +93,10 @@ It is recommended to copy these (or better yet, symlink them so that you get upd
 cd /addon_configs/a0d7b954_appdaemon/ && ln -s ./homeassistant_python_typer/pyrightconfig_recommended.jsonc ./pyrightconfig.json
 ```
 
-Also you should make VSCode check all files and not only those you currently have open, by adding to the `.vscode/settings.json` file (may need to be created):
+Also you should make VSCode check all files and not only those you currently have open, by adding to the `.vscode/settings.json` file
+(Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `>Open Workspace Settings (JSON)`):
+
+Then in that file paste either:
 
 With BasedPyright (if running e.g. the VSCode home assistant addon):
 ```json
@@ -101,19 +108,39 @@ With Pylance (official VSCode on local machine):
 { "python.analysis.diagnosticMode": "workspace" }
 ```
 
-### Note about auto-reload (for VSCode addon users)
+### Other useful settings
+
+These settings we will want to enable globally, so Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `>Open User Settings (JSON)`:
+
+Then add to the existing configurations: 
+```jsonc
+{
+  "[python]": {
+    // Configure the Python formatter
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "editor.formatOnSave": true, // Automatically trigger the formatter when saving a file
+  "files.autoSave": "off", // Don't automatically save files without pressing Ctrl+S
+  "git.enableSmartCommit": true // Easy git usage (auto stage all)
+}
+```
+
+<details>
+<summary>
+<b>Why do we want to disable auto-save?</b>
+</summary>
 
 By default, the VSCode editor will auto-save all files. Also, appdaemon will auto-reload any touched file.
 
 This means that if you're running via the VSCode addon directly on HomeAssistant, as you're editing the files, appdaemon will keep attempting to reload files as you are still writing them, so they will typically be broken.
 
-You may want either:
-- To disable VSCode auto-save in its settings (only manually save with Ctrl+S)
+That is why we typically want either:
+- To disable VSCode auto-save in its settings (to only manually save with Ctrl+S) (`Ctrl + ,` to open settings, then search auto save)
 - To disable appdaemon auto-reload by setting `production_mode: true` in `appdaemon.yaml`, and reload the addon when you want to test new app versions (slower)
 
-Note that in any case, you may need to reload the appdaemon addon after editing files other than a single-app file (in particular after refreshing `hapt.py`).
+Note that if you feel that this isn't relevant for your usual VSCode usage, but is relevant for this case, you may also enable this option only for the appdaemon workspace by pasting `"files.autoSave": "off"` in the `.vscode/settings.json` file of the workspace (Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `>Open Workspace Settings (JSON)`) instead of the global one.
 
-To some extent, this last issue can be avoided by [declaring Global Module Dependencies in `apps.yaml`](https://appdaemon.readthedocs.io/en/latest/APPGUIDE.html#global-module-dependencies)
+</details>
 
 ## 🐣 First app
 
@@ -125,7 +152,7 @@ appdaemon:
   elevation: 2
   time_zone: Europe/Amsterdam
 ```
-- [Latitude & longitude of your HA zones](https://my.home-assistant.io/redirect/zones/) (click the edit button on your "Home" zone)
+- [Latitude & longitude of your HA zones](https://my.home-assistant.io/redirect/zones/) (click the edit button on your "Home" zone after opening this link)
 - [Altitude calculator](https://www.advancedconverter.com/map-tools/find-altitude-by-coordinates)
 - [Timezone list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List)
 
@@ -160,6 +187,26 @@ Disable any automation that currently control the light you're testing with (so 
 Restart appdaemon and check its log. It should give "Initialized HallwaySensorLights" and no error message.
 
 Now go wave your hand in front of your sensor, and your light should turn on! 😊
+
+## Configuring Git
+
+Git is a great way to keep track of your changes and make sure you make no unintended edits.
+
+It's fully local unless explicitly adding a "remote repository" (such as on GitHub) to save it online.
+
+### When using the VSCode addon directly on Home Assistant
+
+Here's how to initialize a local git repository for your appdaemon folder:
+```bash
+cd /addon_configs/a0d7b954_appdaemon/
+[ ! -d .git ] && git init
+git config --global user.name &>/dev/null || { echo -n "Enter your name: "; read user_name; git config --global user.name "$user_name"; }
+git config --global user.email &>/dev/null || { echo -n "Enter your email: "; read user_email; git config --global user.email "$user_email"; }
+```
+
+You may then reload the VSCode window (Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `> Reload Window`), to make it detect it as the main git repository of the folder.
+
+The repository will be backed up along with your regular HomeAssistant backup, as part of the appdaemon plugin.
 
 ## ⚡️ Running directly on your computer
 

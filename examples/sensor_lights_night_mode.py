@@ -14,7 +14,7 @@ night_start = time(23)
 night_end = time(8)
 
 
-class HallwaySensorLights(hass.Hass):
+class SensorLightNightMode(hass.Hass):
     timer: str | None
 
     def initialize(self):
@@ -33,7 +33,7 @@ class HallwaySensorLights(hass.Hass):
 
         self.check_sensor()
 
-        self.log("Initialized HallwaySensorLights")
+        self.log("Initialized SensorLightNightMode")
 
     def timer_trigger(self, cb_args: dict[str, object]):
         self.timer = None

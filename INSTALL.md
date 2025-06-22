@@ -19,6 +19,7 @@
 Of course this requires AppDaemon to be installed on HomeAssistant.
 
 You may install the [AppDaemon add-on of HomeAssistant](https://github.com/hassio-addons/repository/blob/master/appdaemon/DOCS.md) for this.
+Make sure to enable "Start on boot" and "Watchdog" on the add-on.
 
 When using AppDaemon, you will be referring to entity IDs, so it may be practical to [enable the **Display entity IDs in picker** option](https://my.home-assistant.io/redirect/profile).
 
@@ -43,12 +44,16 @@ We provide documentation here for VSCode but of course you may configure other e
 You may use VSCode either:
 1. Directly on your own computer ([Download](https://code.visualstudio.com/))
    - Reactive and flexible editing, with the full power of a native editor on your performant computer
+   - Some guidance on the setup is available at [⚡️ Running directly on your computer](#️-running-directly-on-your-computer)
    - Requires to setup file transfer to send your code to your Home Assistant instance
    - It is highly recommended to use `git` for such file transfer. (Github private repos are free.)
-2. Via [the VSCode addon](https://community.home-assistant.io/t/home-assistant-community-add-on-visual-studio-code/107863) on Home Assistant
+2. Via [the VSCode addon](https://my.home-assistant.io/redirect/supervisor_addon/?addon=a0d7b954_vscode&repository_url=https%3A%2F%2Fgithub.com%2Fhassio-addons%2Frepository) on Home Assistant
    - Super simple setup to get started, no file transfer necessary
+   - Make sure to enable "Show in sidebar" on the add-on
    - Requires some resources on your HomeAssistant instance (~800M dedicated RAM)
    - I would still recommended to use `git` to save versions of your code (learn it by using a graphical git client such as VSCode + Git Graph extension), but you could also choose to rely only on Home Assistant backups.
+
+Once you have that set up, the rest of the configuration is on there, so head over the VSCode interface!
 
 ### Install Python extensions
 
@@ -68,17 +73,21 @@ We need to make appdaemon accessible to the type checker.
    - Click "Create virtual environment", then select "Venv" and "/bin/python3"
    - Once that [completes](https://code.visualstudio.com/docs/python/environments#_using-the-create-environment-command), at the bottom right of the editor, if you have any `.py` file open, it should show `3.11.x ('.venv': venv)`
 3. Install appdaemon in the virtual env:
-   - Press Ctrl+Shift+C to open a terminal
+   - Press Ctrl+Shift+C (or Cmd+Shift+C on mac) to open a terminal
    - It should show `.venv` at the beginning of the prompt, to signify that it is running within the context of the virtual env that we have just created.
      (If it doesn't, close the terminal with `Ctrl+D` then open it again.)
-   - Type `pip install --upgrade appdaemon` in the VSCode terminal. It should complete without any error after some time.
+   - Paste in the VSCode terminal (you may paste in a terminal by using Ctrl+Shift+V):
+     ```bash
+     pip install --upgrade appdaemon
+     ```
+     It should complete without any error after some time.
      - **Note that this command will need to be re-run after appdaemon addon updates, to keep venv in sync with appdaemon addon version**
 
 ### Install and run homeassistant_python_typer
 
 Press Ctrl+Shift+C (or call "Create a new terminal" from the command palette) in VSCode to open a terminal.
 
-1. Run the following command:
+1. Run the following command (You may paste by using Ctrl+Shift+V):
    ```bash
    cd /addon_configs/a0d7b954_appdaemon/ && git clone https://github.com/Ten0/homeassistant_python_typer.git
    ```
@@ -89,7 +98,7 @@ Press Ctrl+Shift+C (or call "Create a new terminal" from the command palette) in
 
 TL;DR: If you're using the VSCode addon on Home Assitant, run the following commands:
 ```bash
-cd /addon_configs/a0d7b954_appdaemon/ && (([ -L "./pyrightconfig.json" ] || [ ! -f "./pyrightconfig.json" ]) || ln -sf ./homeassistant_python_typer/pyrightconfig_recommended.jsonc ./pyrightconfig.json)
+cd /addon_configs/a0d7b954_appdaemon/ && (([ -L "./pyrightconfig.json" ] || [ ! -f "./pyrightconfig.json" ]) && ln -sf ./homeassistant_python_typer/pyrightconfig_recommended.jsonc ./pyrightconfig.json)
 cd /addon_configs/a0d7b954_appdaemon/ && (mkdir -p .vscode && [ -f ".vscode/settings.json" ] || echo '{}' > ".vscode/settings.json")
 TMPFILE=$(mktemp --suffix="settings.json"); jq -s '.[0] * .[1]' ".vscode/settings.json" "./homeassistant_python_typer/recommended_vscode_workspace_settings.json" > "$TMPFILE" && mv "$TMPFILE" ".vscode/settings.json"
 ```
@@ -179,23 +188,23 @@ Update your `apps.yaml` like so:
 ```yaml
 my_first_sensor_light:
   module: my_first_sensor_light
-  class: HallwaySensorLights
+  class: FirstSensorLight
 ```
 
 More details on the `apps.yaml` structure and options [in the AppDaemon documentation](https://appdaemon.readthedocs.io/en/latest/APPGUIDE.html#configuration-of-apps).
 
-Copy over the `sensor_lights.py` example to the `my_first_sensor_light.py` file:
+Copy over the `sensor_light_most_basic.py` example to the `my_first_sensor_light.py` file:
 ```bash
 cd /addon_configs/a0d7b954_appdaemon/
-cp ./homeassistant_python_typer/examples/sensor_lights.py ./apps/my_first_sensor_light.py
+cp ./homeassistant_python_typer/examples/sensor_light_most_basic.py ./apps/my_first_sensor_light.py
 ```
 
 Opening that `my_first_sensor_light.py` file in your editor, you should see errors: they relate to the example referring to entities that may not exist in your installation.
 
 Go ahead and update the file, using [entity ID](https://www.home-assistant.io/docs/configuration/customizing-devices/)s that exist in your house:
 ```python
-self.light = self.ha.light.an_actual_light_that_you_have_in_your_homeassistant
-self.sensor = self.ha.binary_sensor.an_actual_motion_sensor_that_you_have_in_your_homeassistant
+light = self.ha.light.an_actual_light_that_you_have_in_your_homeassistant
+sensor = self.ha.binary_sensor.an_actual_motion_sensor_that_you_have_in_your_homeassistant
 ```
 
 The errors should disappear, and you should have benefited from auto-completion while looking for your entities. If there are errors left in the `turn_on` or `turn_off` call stating that some parameters don't exist, it means that your particular light does not support them. Remove them from the call.

@@ -1,12 +1,14 @@
 """
-Basic sensor lights automation.
+Basic sensor lights automation, but using patterns that allow to hook more logic.
+Such additional logic can be night mode, different light levels...
+See `examples/sensor_lights_night_mode.py` for an example of such additional logic.
 """
 
 import appdaemon.plugins.hass.hassapi as hass
 from hapt import HomeAssistant
 
 
-class HallwaySensorLights(hass.Hass):
+class SensorLight(hass.Hass):
     timer: str | None
 
     def initialize(self):
@@ -23,7 +25,7 @@ class HallwaySensorLights(hass.Hass):
 
         self.check_sensor()
 
-        self.log("Initialized HallwaySensorLights")
+        self.log("Initialized SensorLight")
 
     def timer_trigger(self, cb_args: dict[str, object]):
         self.timer = None

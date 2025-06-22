@@ -7,10 +7,9 @@
   - [Install Python extensions](#install-python-extensions)
   - [Python configuration \& venv](#python-configuration--venv)
   - [Install and run homeassistant\_python\_typer](#install-and-run-homeassistant_python_typer)
-  - [Typer and formatter configuration](#typer-and-formatter-configuration)
-  - [Other useful settings](#other-useful-settings)
+  - [Editor configuration](#editor-configuration)
 - [🐣 First app](#-first-app)
-- [Configuring Git](#configuring-git)
+- [🕵️ Configuring Git](#️-configuring-git)
   - [When using the VSCode addon directly on Home Assistant](#when-using-the-vscode-addon-directly-on-home-assistant)
 - [⚡️ Running directly on your computer](#️-running-directly-on-your-computer)
 
@@ -62,7 +61,7 @@ We need to make appdaemon accessible to the type checker.
 
 1. Open your editor (e.g. VSCode), and browse to your AppDaemon apps folder (e.g. if using the VSCode addon, `File > Open folder > /addon_configs/a0d7b954_appdaemon`).
 2. Create a virtual environment in your VSCode workspace:
-   - Press Ctrl+Shift+P (or Cmd+Shift+P on mac) to open the command palette (Ctrl+P then type `>` if that doesn't work)
+   - Press Ctrl+Shift+P (or Cmd+Shift+P on mac) to open the [Command Palette](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) (Ctrl+P then type `>` if that doesn't work)
    - Type `> Python: Select Interpreter`
    - Click "Create virtual environment", then select "Venv" and "/bin/python3"
    - Once that [completes](https://code.visualstudio.com/docs/python/environments#_using-the-create-environment-command), at the bottom right of the editor, if you have any `.py` file open, it should show `3.11.x ('.venv': venv)`
@@ -71,66 +70,36 @@ We need to make appdaemon accessible to the type checker.
    - It should show `.venv` at the beginning of the prompt, to signify that it is running within the context of the virtual env that we have just created.
      (If it doesn't, close the terminal with `Ctrl+D` then open it again.)
    - Type `pip install --upgrade appdaemon` in the VSCode terminal. It should complete without any error after some time.
-     - (Note that this command may need to be re-run after appdaemon updates, to keep venv in sync with appdaemon addon version)
+     - **Note that this command will need to be re-run after appdaemon addon updates, to keep venv in sync with appdaemon addon version**
 
 ### Install and run homeassistant_python_typer
 
 Press Ctrl+Shift+C (or call "Create a new terminal" from the command palette) in VSCode to open a terminal.
 
-1. Go to your appdaemon directory: `cd /addon_configs/a0d7b954_appdaemon/`
-2. Download homeassistant_python_typer: `git clone https://github.com/Ten0/homeassistant_python_typer.git`
-3. Run as described in [How it works](./README.md#-how-it-works) to generate the `apps/hapt.py` and `apps/homeassistant_python_typer_helpers.py` files.
-   - Note that this command will need to be re-run if you have added/removed/updated entities in your Home Assistant and possibly after Home Assistant updates, to make everything known in the `hapt.py` file.
+1. Run the following command:
+   ```bash
+   cd /addon_configs/a0d7b954_appdaemon/ && git clone https://github.com/Ten0/homeassistant_python_typer.git
+   ```
+2. Run as described in [How it works](./README.md#-how-it-works) to generate the `apps/hapt.py` and `apps/homeassistant_python_typer_helpers.py` files.
+   - **Note that this command will need to be re-run if you have added/removed/updated entities in your Home Assistant and possibly after Home Assistant updates, to make everything known in the `hapt.py` file.**
 
-### Typer and formatter configuration
+### Editor configuration
 
-To have the typer catch as many mistakes as possible right from your editor, you must configure the extension installed above with appropriate typing constraints in your appdaemon workspace.
-
-Suggested parameters are available in this repository's `pyrightconfig_recommended.jsonc`.
-
-It is recommended to copy these (or better yet, symlink them so that you get updates) over to the folder that you open in VSCode when working on your AppDaemon Apps:
+TL;DR: If you're using the VSCode addon on Home Assitant, run the following commands:
 ```bash
-cd /addon_configs/a0d7b954_appdaemon/ && ln -s ./homeassistant_python_typer/pyrightconfig_recommended.jsonc ./pyrightconfig.json
+cd /addon_configs/a0d7b954_appdaemon/ && (([ -L "./pyrightconfig.json" ] || [ ! -f "./pyrightconfig.json" ]) || ln -sf ./homeassistant_python_typer/pyrightconfig_recommended.jsonc ./pyrightconfig.json)
+cd /addon_configs/a0d7b954_appdaemon/ && (mkdir -p .vscode && [ -f ".vscode/settings.json" ] || echo '{}' > ".vscode/settings.json")
+TMPFILE=$(mktemp --suffix="settings.json"); jq -s '.[0] * .[1]' ".vscode/settings.json" "./homeassistant_python_typer/recommended_vscode_workspace_settings.json" > "$TMPFILE" && mv "$TMPFILE" ".vscode/settings.json"
 ```
 
-Also you should make VSCode check all files and not only those you currently have open, by adding to the `.vscode/settings.json` file
-(Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `>Open Workspace Settings (JSON)`):
-
-Then in that file paste either:
-
-With BasedPyright (if running e.g. the VSCode home assistant addon):
-```json
-{ "basedpyright.analysis.diagnosticMode": "workspace" }
-```
-
-With Pylance (official VSCode on local machine):
-```json
-{ "python.analysis.diagnosticMode": "workspace" }
-```
-
-### Other useful settings
-
-These settings we will want to enable globally, so Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `>Open User Settings (JSON)`:
-
-Then add to the existing configurations: 
-```jsonc
-{
-  "[python]": {
-    // Configure the Python formatter
-    "editor.defaultFormatter": "ms-python.black-formatter"
-  },
-  "editor.formatOnSave": true, // Automatically trigger the formatter when saving a file
-  "files.autoSave": "off", // Don't automatically save files without pressing Ctrl+S
-  "git.enableSmartCommit": true // Easy git usage (auto stage all)
-}
-```
+Note that this disables auto-save in VSCode for the appdaemon workspace, so you'll have to press `Ctrl+S` to save.
 
 <details>
 <summary>
 <b>Why do we want to disable auto-save?</b>
 </summary>
 
-By default, the VSCode editor will auto-save all files. Also, appdaemon will auto-reload any touched file.
+By default, appdaemon will auto-reload any touched file.
 
 This means that if you're running via the VSCode addon directly on HomeAssistant, as you're editing the files, appdaemon will keep attempting to reload files as you are still writing them, so they will typically be broken.
 
@@ -141,6 +110,53 @@ That is why we typically want either:
 Note that if you feel that this isn't relevant for your usual VSCode usage, but is relevant for this case, you may also enable this option only for the appdaemon workspace by pasting `"files.autoSave": "off"` in the `.vscode/settings.json` file of the workspace (Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `>Open Workspace Settings (JSON)`) instead of the global one.
 
 </details>
+
+<details>
+<summary>
+<b>Manual configuration</b>
+</summary>
+
+To have the typer catch as many mistakes as possible right from your editor, you must configure the extension installed above with appropriate typing constraints in your appdaemon workspace.
+
+Suggested parameters are available in this repository's `pyrightconfig_recommended.jsonc`.
+
+It is recommended to link these settings over to the folder that you open in VSCode when working on your AppDaemon Apps:
+```bash
+cd /addon_configs/a0d7b954_appdaemon/ && ln -s ./homeassistant_python_typer/pyrightconfig_recommended.jsonc ./pyrightconfig.json
+```
+It's linked so that it updates automatically.
+Note that if you want to edit these settings (advanced users), you should copy the file instead of linking it:
+```bash
+cd /addon_configs/a0d7b954_appdaemon/ && rm -f ./pyrightconfig.json && cp ./homeassistant_python_typer/pyrightconfig_recommended.jsonc ./pyrightconfig.json
+```
+
+The editor also needs some extra configuration, which should be added to  the `.vscode/settings.json` file
+(Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `>Open Workspace Settings (JSON)`):
+
+Paste all of [these recommended settings](./recommended_vscode_workspace_settings.json) to that file.
+
+You may hover your cursor over each option to see what effect it has.
+
+<details>
+<summary>
+<b>If using Pylance (official VSCode on local machine)</b>
+</summary>
+
+You should replace:
+```json
+{ "basedpyright.analysis.diagnosticMode": "workspace" }
+```
+with
+```json
+{ "python.analysis.diagnosticMode": "workspace" }
+```
+
+</details>
+
+Some of these settings may be relevant globally instead of only in the workspace, so paste them to Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `>Open User Settings (JSON)` at your convenience.
+
+</details>
+
 
 ## 🐣 First app
 
@@ -188,7 +204,7 @@ Restart appdaemon and check its log. It should give "Initialized HallwaySensorLi
 
 Now go wave your hand in front of your sensor, and your light should turn on! 😊
 
-## Configuring Git
+## 🕵️ Configuring Git
 
 Git is a great way to keep track of your changes and make sure you make no unintended edits.
 
@@ -204,9 +220,11 @@ git config --global user.name &>/dev/null || { echo -n "Enter your name: "; read
 git config --global user.email &>/dev/null || { echo -n "Enter your email: "; read user_email; git config --global user.email "$user_email"; }
 ```
 
-You may then reload the VSCode window (Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `> Reload Window`), to make it detect it as the main git repository of the folder.
+Then "Reload Window" in VSCode (Ctrl+P/Ctrl+Shift+P/Ctrl+P/Cmd+P -> `> Reload Window`), to make it detect it as the main git repository of the folder.
 
-The repository will be backed up along with your regular HomeAssistant backup, as part of the appdaemon plugin.
+You may then review and "save" (commit) your changes [using the corresponding VSCode panel](https://code.visualstudio.com/docs/sourcecontrol/intro-to-git#_staging-and-committing-code-changes).
+
+The repository will be backed up along with your regular HomeAssistant backup, as part of the AppDaemon addon's backup.
 
 ## ⚡️ Running directly on your computer
 

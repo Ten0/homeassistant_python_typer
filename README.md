@@ -103,7 +103,7 @@ We provide a script which when run on a HomeAssistant instance will generate typ
 
 Run the the script to generate your types :
 ```console
-cd /addon_configs/a0d7b954_appdaemon/homeassistant_python_typer/src && git pull && \
+cd /addon_configs/a0d7b954_appdaemon/homeassistant_python_typer/src && git fetch && git reset --hard origin/main && \
 python3 -m homeassistant_python_typer /addon_configs/a0d7b954_appdaemon/apps/hapt.py && cp ../homeassistant_python_typer_helpers.py /addon_configs/a0d7b954_appdaemon/apps/
 ```
 

@@ -1,0 +1,11 @@
+{
+  "editor.formatOnSave": true,
+  "files.autoSave": "off",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.rulers": [88]
+  },
+  "git.enableSmartCommit": true,
+  "git.ignoredRepositories": ["./homeassistant_python_typer"],
+  "basedpyright.analysis.diagnosticMode": "workspace"
+}

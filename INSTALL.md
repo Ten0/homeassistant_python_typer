@@ -20,6 +20,8 @@ Of course this requires AppDaemon to be installed on HomeAssistant.
 
 You may install the [AppDaemon add-on of HomeAssistant](https://github.com/hassio-addons/repository/blob/master/appdaemon/DOCS.md) for this.
 
+When using AppDaemon, you will be referring to entity IDs, so it may be practical to [enable the **Display entity IDs in picker** option](https://my.home-assistant.io/redirect/profile).
+
 By default `appdaemon.yaml` and `apps` will be stored in `/addon_configs/a0d7b954_appdaemon`, so those are the files you should edit.
 
 <details>

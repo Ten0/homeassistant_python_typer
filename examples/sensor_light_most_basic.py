@@ -11,8 +11,8 @@ class FirstSensorLight(hass.Hass):
     def initialize(self):
         self.ha = HomeAssistant(self)
 
-        self.light = self.ha.light.bed_light
-        sensor = self.ha.input_boolean.switch_1
+        self.light = self.ha.light.hallway_lamp
+        sensor = self.ha.input_boolean.hallway_motion_sensor_occupancy
 
         sensor.listen_state(self.turn_light_on, new="on")
         sensor.listen_state(self.light.turn_off, new="off", duration_s=2)

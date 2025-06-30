@@ -211,7 +211,7 @@ The errors should disappear, and you should have benefited from auto-completion 
 
 Disable any automation that currently control the light you're testing with (so that we can test properly).
 
-Restart appdaemon and check its log. It should give "Initialized HallwaySensorLights" and no error message.
+Restart appdaemon and check its log. It should give "Initialized FirstSensorLight" and no error message.
 
 Now go wave your hand in front of your sensor, and your light should turn on! 😊
 

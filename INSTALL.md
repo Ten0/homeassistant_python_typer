@@ -2,6 +2,7 @@
 
 ### Table of contents
 
+- [🎥 Video install guide](#-video-install-guide)
 - [🚂 AppDaemon](#-appdaemon)
 - [📜 Editor](#-editor)
   - [Install Python extensions](#install-python-extensions)
@@ -13,6 +14,9 @@
   - [When using the VSCode addon directly on Home Assistant](#when-using-the-vscode-addon-directly-on-home-assistant)
 - [⚡️ Running directly on your computer](#️-running-directly-on-your-computer)
 
+## 🎥 Video install guide
+
+[![Video](https://img.youtube.com/vi/4o37ULggtSk/hqdefault.jpg)](https://youtu.be/4o37ULggtSk?si=EWnINfKellL70sFu&t=211)
 
 ## 🚂 AppDaemon
 

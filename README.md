@@ -30,6 +30,8 @@ Run this script to obtain a typed Python interface for all entities available in
 
 ![VSCode screenshot of how it highlights errors](docs/typing_demo.png)
 
+[🎥 Demo video](https://youtu.be/4o37ULggtSk?si=1p11uYQoEmjp3g2T&t=61)
+
 See [How it works](#-how-it-works) section for how to setup.
 
 # 💡 Why

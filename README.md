@@ -67,7 +67,7 @@ With no-code tooling:
 
 3. No code lacks variables and functions, so you repeat the same boxes (or almost the same boxes) multiple times. If you need to make ~ the same changes to multiple automations, it will take you many clicks per automation, whereas with code, factoring is not 50 clicks, so you've probably just already written a function, so you can probably just change that one function. Otherwise a "search in all files" will get you sorted in seconds.
 
-4. No-code lacks typing. If an entity becomes unavailable, or changes name, or you don't pass the right entity to a bluebrint, automations break, but noone will warn you. You only notice it when something doesn't work as expected, and then you spend a lot of time diagnosing why. With code, your editor immediately gives you a big red line in case of mistake, so that doesn't take any time.
+4. No-code lacks typing. If an entity becomes unavailable, or changes name, or you don't pass the right entity to a blueprint, automations break, but noone will warn you. You only notice it when something doesn't work as expected, and then you spend a lot of time diagnosing why. With code, your editor immediately gives you a big red line in case of mistake, so that doesn't take any time.
 
 5. When you write no-code, you're actually already using 90% of the skills of a developer who writes programs using code:
    - Thinking about how to solve the problem on a high level (I want this to happen if this happens)
@@ -81,7 +81,7 @@ With no-code tooling:
 
 Code solves all the aforementioned pain points.
 
-In the "automate things with a computer" world, besides very specialized tasks, actual code is the most efficient way we know to automate things in a flexible manner today today.
+In the "automate things with a computer" world, besides very specialized tasks, actual code is the most efficient way we know to automate things in a flexible manner today.
 
 That is in great part because the software industry is so big that it has developed over the years amazing tools to make that development experience absolutely seamless!
 

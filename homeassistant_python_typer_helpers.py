@@ -162,7 +162,7 @@ class Entity:
         Get state of the entity, or any of its attributes, or all its attributes.
 
         This method has repeatable read semantics, that is, it will return the same value if called multiple times
-        in the same event handling. This generally naturally avoiding race conditions when writing if/else logic based
+        in the same event handling. This generally naturally avoids race conditions when writing if/else logic based
         on the states.
 
         Returns default if the attribute is not found.

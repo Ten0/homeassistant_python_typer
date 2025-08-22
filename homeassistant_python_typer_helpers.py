@@ -156,7 +156,7 @@ class Entity:
         Get state of the entity, or any of its attributes, or all its attributes.
 
         This method has repeatable read semantics, that is, it will return the same value if called multiple times
-        in the same event handling. This generally naturally avoiding race conditions when writing if/else logic based
+        in the same event handling. This generally naturally avoids race conditions when writing if/else logic based
         on the states.
 
         Returns default if the attribute is not found.
@@ -339,7 +339,7 @@ class Domain:
 
 
 def rgb_color(
-    rgb_array_or_str: list[int] | tuple[int, int, int] | str
+    rgb_array_or_str: list[int] | tuple[int, int, int] | str,
 ) -> tuple[int, int, int]:
     if isinstance(rgb_array_or_str, str):
         # Convert from hashtag hex representation to the RGB tuple

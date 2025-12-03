@@ -1,0 +1,13 @@
+[project]
+name = "homeassistant-python-typer"
+version = "0.1.0"
+description = "Full-fledged typing for your home automation applications. Never see your automations break again."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.32.5",
+]
+
+[project.scripts]
+homeassistant-python-typer = "homeassistant_python_typer.__main__:main"
+

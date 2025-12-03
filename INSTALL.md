@@ -93,12 +93,28 @@ We need to make appdaemon accessible to the type checker.
 
 Press Ctrl+Shift+C (or call "Create a new terminal" from the command palette) in VSCode to open a terminal.
 
+**Option 1: Using git clone (recommended for development)**
+
 1. Run the following command (You may paste by using Ctrl+Shift+V):
    ```bash
    cd /addon_configs/a0d7b954_appdaemon/ && git clone https://github.com/Ten0/homeassistant_python_typer.git
    ```
 2. Run as described in [How it works](./README.md#-how-it-works) to generate the `apps/hapt.py` and `apps/homeassistant_python_typer_helpers.py` files.
    - **Note that this command will need to be re-run if you have added/removed/updated entities in your Home Assistant and possibly after Home Assistant updates, to make everything known in the `hapt.py` file.**
+
+**Option 2: Using uv (alternative)**
+
+If you have [uv](https://docs.astral.sh/uv/) installed, you can install or run directly from the repository:
+
+- Install in your virtual environment:
+  ```bash
+  uv add git+https://github.com/Ten0/homeassistant_python_typer.git
+  ```
+
+- Or run directly without installing:
+  ```bash
+  uvx git+https://github.com/Ten0/homeassistant_python_typer.git
+  ```
 
 ### Editor configuration
 

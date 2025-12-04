@@ -14,7 +14,7 @@ def infer_state_superclass(
     if return_type is not None:
         superclass_body = f"""
                 \"""
-                Superclass for entity state that holds.
+                Superclass for entity state that holds return type information and documentation specific to this entity.
                 \"""
                 def state(
                     self,
@@ -35,7 +35,7 @@ def infer_state_superclass(
             class {superclass_name}(hapth.Entity):"""
                 + superclass_body
             )
-            builder.classes_per_body[superclass_body] = ServiceClass(
+            builder.classes_per_body[superclass_body] = EntitySuperclass(
                 name=superclass_name, body=superclass_full_body
             )
             extra_superclasses.append(superclass_name)

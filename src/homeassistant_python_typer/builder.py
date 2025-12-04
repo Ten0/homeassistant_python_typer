@@ -3,7 +3,7 @@ from typing import Any, Iterable, Tuple
 
 
 class HaptBuilder:
-    classes_per_body: dict[str, ServiceClass] = {}
+    classes_per_body: dict[str, EntitySuperclass] = {}
     "Key is body of the class, for find-or-create"
 
     entities: list[Entity] = []

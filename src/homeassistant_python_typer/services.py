@@ -132,7 +132,7 @@ def infer_services_superclasses(
             class {superclass_name}(hapth.Entity):"""
                 + superclass_body
             )
-            builder.classes_per_body[superclass_body] = ServiceClass(
+            builder.classes_per_body[superclass_body] = EntitySuperclass(
                 name=superclass_name, body=superclass_full_body
             )
             extra_superclasses.append(superclass_name)
@@ -233,7 +233,7 @@ def options_enum_type(
     builder: HaptBuilder,
 ) -> str:
     "Finds or create the necessary enum in enum_types, and returns its name"
-    return builder.enum_type(field_name, f"Options{field_name.title()}", options)
+    return builder.enum_type(field_name, f"Option{field_name.title()}", options)
 
 
 def field_is_available_for_entity(

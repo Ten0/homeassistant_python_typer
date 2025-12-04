@@ -3,7 +3,7 @@ from typing import Any
 
 
 @dataclass
-class ServiceClass:
+class EntitySuperclass:
     name: str
     body: str
 

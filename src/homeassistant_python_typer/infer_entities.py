@@ -3,6 +3,7 @@ from typing import Any
 from .builder import HaptBuilder
 from .services import infer_services_superclasses, per_entity_domain_services
 from .states import infer_state_superclass
+from .attribute_getters import infer_attributes_superclasses
 from .helpers import retab, sanitize_for_ident
 from .dataclasses import *
 
@@ -44,6 +45,10 @@ def infer_entities(
                 domain=domain,
                 entity_attributes=entity_attributes,
                 per_entity_domain_services=per_entity_domain_services_,
+            )
+            + infer_attributes_superclasses(
+                builder=builder,
+                entity_attributes=entity_attributes,
             )
             + [f"hapth.{superclass}"]
         )

@@ -114,6 +114,10 @@ def state_type(
                 # (in which case that would probably be None)
                 return_type = "int | float"
                 cast = "hapth.int_or_float"
+            case "timestamp":
+                builder.imports.add("import datetime")
+                return_type = "datetime.datetime"
+                cast = "datetime.datetime.fromisoformat"
             case _:
                 print(
                     f"Warning: Unknown device class '{device_class}' for entity '{entity_id}'"

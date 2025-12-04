@@ -15,6 +15,8 @@ class HaptBuilder:
     enum_types: dict[Tuple[str, str], TypeAlias] = {}
     "(field name, type) -> (type alias name, type alias declaration)"
 
+    imports: set[str] = set()
+
     def enum_type(
         self,
         field_name: str,

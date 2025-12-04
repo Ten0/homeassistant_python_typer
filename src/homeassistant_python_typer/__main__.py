@@ -76,6 +76,7 @@ def main():
     for _, domain in domains_classes:
         domain.entities.sort(key=lambda e: e.name)
 
+    import_declarations_body = "\n".join(sorted(builder.imports)) + "\n"
     enum_declarations_body = "\n".join(
         (type_alias.declaration for type_alias in builder.enum_types.values())
     )
@@ -124,7 +125,7 @@ def main():
     from appdaemon.adbase import ADBase
     import homeassistant_python_typer_helpers as hapth
     from typing import TypeAlias, Literal, Tuple, Any
-
+{retab(import_declarations_body)}
 
     # Declare type aliases for all "select" options
 {retab(enum_declarations_body)}

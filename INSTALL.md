@@ -261,7 +261,7 @@ The repository will be backed up along with your regular HomeAssistant backup, a
 
 ## ⚡️ Running directly on your computer
 
-If you prefer to develop directly from the confort of your own computer from your local editor, you may run the typer script there as well.
+If you prefer to develop directly from the comfort of your own computer from your local editor, you may run the typer script there as well.
 However in this case it is necessary to tell the script where your HomeAssistant instance is.
 
 This is done via two environment variables:
@@ -269,7 +269,7 @@ This is done via two environment variables:
 - `HOMEASSISTANT_TOKEN`: A [long-lived token to your HomeAssistant instance](https://community.home-assistant.io/t/how-to-get-long-lived-access-token/162159/5?u=ten)
 
 The set of commands to run to update your types then becomes:
-```
+```bash
 cd homeassistant_python_typer/src
 git pull
 export HOMEASSISTANT_URL="URL of your home assistant instance"

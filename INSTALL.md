@@ -113,7 +113,7 @@ If you have [uv](https://docs.astral.sh/uv/) installed, you can install or run d
 
 - Or run directly without installing:
   ```bash
-  uvx git+https://github.com/Ten0/homeassistant_python_typer.git
+  uvx --from git+https://github.com/Ten0/homeassistant_python_typer.git homeassistant_python_typer
   ```
 
 ### Editor configuration

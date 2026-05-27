@@ -52,12 +52,14 @@ def state_type(
     cast = None
     doc: str = ""
 
-    if entity_id.startswith("counter."):
+    if entity_id.startswith("counter.") or entity_id.startswith("input_number."):
         if (
             "step" in entity_attributes
             and is_int(entity_attributes["step"])
-            and "initial" in entity_attributes
-            and is_int(entity_attributes["initial"])
+            and (
+                "initial" in entity_attributes and is_int(entity_attributes["initial"])
+            )
+            or ("min" in entity_attributes and is_int(entity_attributes["min"]))
         ):
             return_type = "int"
             cast = "hapth.checked_int"

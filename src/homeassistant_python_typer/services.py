@@ -12,15 +12,21 @@ def service_function_body(
     entity_attributes_if_entity: dict[str, Any] | None,
     field_names_on_same_class: set[str],
 ) -> str:
-    fields: dict[str, Any] = service.data.get("fields", {})
+    raw_fields: dict[str, Any] = service.data.get("fields", {})
 
-    # Advanced fields are just fields, flatten that before processing
-    for advanced_field, advanced_field_data in fields.pop(
-        "advanced_fields", {"fields": {}}
-    )["fields"].items():
-        # Prioritize non-advanced fields
-        if advanced_field not in fields:
-            fields[advanced_field] = advanced_field_data
+    # "section" fields are just fields, flatten that before processing
+    fields: dict[str, Any] = {}
+    sections: list[dict[str, Any]] = []
+    for field_name, field_data in raw_fields.items():
+        # Detect a "section" exactly as HA does: an entry is a section iff it holds nested
+        # "fields" (see script/hassfest/services.py's `if value and "fields" in value`).
+        if field_data and "fields" in field_data:
+            sections.append(field_data["fields"])
+        else:
+            fields[field_name] = field_data
+    for section_fields in sections:
+        for field_name, field_data in section_fields.items():
+            fields.setdefault(field_name, field_data)
 
     # Avoid conflict with entity name (because they will both be defined on the same object)
     function_name = (

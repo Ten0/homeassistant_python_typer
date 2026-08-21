@@ -64,10 +64,18 @@ def enum_type_and_doc(
     attribute_name: str,
     options: list[str],
     builder: HaptBuilder,
-):
+) -> tuple[str, str]:
+    doc = f"""
+                        """
     return_type = builder.enum_type(
         attribute_name, f"Attribute{attribute_name.title()}", options
     )
+    if return_type is None:
+        return (
+            "str",
+            doc
+            + "Can't infer list of possible values because entity didn't list them at introspection time",
+        )
     line_break = "\n"  # python 3.11 support
     doc = f"""
                         Possible values:

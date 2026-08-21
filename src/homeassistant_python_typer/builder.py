@@ -22,12 +22,15 @@ class HaptBuilder:
         field_name: str,
         type_name_prefix: str,
         options: Iterable[str | dict[str, Any]],
-    ):
+    ) -> str | None:
         "Finds or create the necessary enum in enum_types, and returns its name"
-        options_repr: Iterable[str] = (
+        options_repr: list[str] = [
             repr(option["value"]) if isinstance(option, dict) else repr(option)
             for option in options
-        )
+        ]
+        if len(options_repr) == 0:
+            # Caller will have to fallback
+            return None
         type = f"Literal[{', '.join(options_repr)}]"
         if (field_name, type) in self.enum_types:
             return self.enum_types[(field_name, type)].name

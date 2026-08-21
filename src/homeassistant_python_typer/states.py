@@ -141,11 +141,18 @@ def state_type(
 def enum_type_and_doc(
     options: list[str],
     builder: HaptBuilder,
-):
-    return_type = builder.enum_type("state", "State", options)
-    line_break = "\n"  # python 3.11 support
+) -> tuple[str, str]:
     doc = f"""
-                        Possible states:
+                        """
+    return_type = builder.enum_type("state", "State", options)
+    if return_type is None:
+        return (
+            "str",
+            doc
+            + "Can't infer list of possible states because entity didn't list them at introspection time",
+        )
+    line_break = "\n"  # python 3.11 support
+    doc += f"""Possible states:
                         - {f'{line_break}                        - '.join((f"`{option}`" for option in options))}"""
     return return_type, doc
 

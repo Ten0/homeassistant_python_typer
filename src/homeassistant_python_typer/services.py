@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Tuple
+from typing import Any, Tuple
 import pydoc
 
 from .states import number_entity_is_int
@@ -235,11 +235,12 @@ def choose_field_type(
 
 def options_enum_type(
     field_name: str,
-    options: Iterable[str | dict[str, Any]],
+    options: list[str | dict[str, Any]],
     builder: HaptBuilder,
 ) -> str:
     "Finds or create the necessary enum in enum_types, and returns its name"
-    return builder.enum_type(field_name, f"Option{field_name.title()}", options)
+    t = builder.enum_type(field_name, f"Option{field_name.title()}", options)
+    return t if t is not None else "str"
 
 
 def field_is_available_for_entity(
